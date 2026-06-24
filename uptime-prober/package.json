@@ -1,0 +1,32 @@
+{
+  "name": "@proof-computer/uptime-prober",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Acurast app: every 5 minutes, screenshot a host inside the TEE WebView and deliver it to the user's own Telegram bot. First public proof/ Marketplace offering (BKLG-20260624-002).",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "build": "tsx scripts/build.ts",
+    "spike:local": "UPTIME_PROBER_MODE=spike tsx src/index.ts"
+  },
+  "dependencies": {
+    "@proof-computer/liskov-runtime": "github:proof-computer/liskov-runtime-js#v0.3.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "esbuild": "^0.28.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@proof-computer/liskov-runtime",
+      "esbuild"
+    ]
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "domain": "proof.slipway.application-policy.v3",
+  "applicationId": "uptime-prober",
+  "displayName": "Uptime Prober",
+  "replicas": 1,
+  "metadata": {
+    "displayName": "Uptime Prober",
+    "appType": "background-worker",
+    "labels": ["uptime", "monitoring", "telegram", "webview"],
+    "owner": "PROOF",
+    "revision": 1
+  },
+  "source": {
+    "provider": "github",
+    "repository": "proof-computer/liskov-marketplace-offerings",
+    "path": "uptime-prober/.liskov/uptime-prober.policy.json"
+  },
+  "artifact": {
+    "mode": "planned-ipfs",
+    "status": "pending",
+    "cid": "",
+    "digest": ""
+  },
+  "artifactAutomation": {
+    "github": {
+      "autoPublish": false,
+      "repository": "proof-computer/liskov-marketplace-offerings",
+      "branch": "main",
+      "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober-ipfs.yml@refs/heads/main"
+    }
+  },
+  "runtime": {
+    "role": "uptime-prober",
+    "runtime": "NodeJSWithBundle",
+    "durationMs": 900000,
+    "resources": {
+      "memory": 512,
+      "storage": 64,
+      "networkRequests": 256
+    },
+    "requiredModules": [],
+    "replacementRunwayMs": 300000,
+    "desiredCount": 1,
+    "keyVersion": 1
+  },
+  "acurast": {
+    "pinnedProcessors": [],
+    "verifiedOnly": false,
+    "assignmentStrategy": "single",
+    "managerId": "9470",
+    "processorSelection": {
+      "mode": "open-market",
+      "requireScheduleClear": true,
+      "requireConsumerAccess": true,
+      "candidateLimit": 16
+    },
+    "maxStartDelayMs": 300000,
+    "startDelayMs": 300000,
+    "budgetCaps": {
+      "maxRewardPerLaunch": 40000000000,
+      "maxNativeFeePerLaunch": 10000000000
+    },
+    "quote": {
+      "required": false
+    }
+  },
+  "ingress": {
+    "mode": "none",
+    "childSessionDurationMs": 600000
+  },
+  "blackbox": {
+    "enabled": true,
+    "baseUrl": "https://logging.liskov.proof.computer",
+    "configSource": "operator.lockbox-profile",
+    "profileId": "uptime-prober",
+    "sinkName": "uptime-prober"
+  },
+  "environment": {
+    "variables": [
+      {
+        "name": "UPTIME_PROBER_HOST",
+        "required": true,
+        "source": "literal",
+        "value": "https://example.com"
+      },
+      {
+        "name": "UPTIME_PROBER_TG_CHAT_ID",
+        "required": true,
+        "source": "literal",
+        "value": "REPLACE_WITH_CHAT_ID"
+      }
+    ],
+    "secrets": []
+  },
+  "secrets": {
+    "declarations": [
+      {
+        "secretId": "uptime-prober-tg-bot-token",
+        "required": true,
+        "target": "env",
+        "name": "UPTIME_PROBER_TG_BOT_TOKEN",
+        "bundleId": "uptime-prober-tg"
+      },
+      {
+        "secretId": "blackbox-log-config",
+        "required": true,
+        "target": "env",
+        "name": "BLACKBOX_LOG_CONFIG",
+        "bundleId": "blackbox-log-config"
+      }
+    ]
+  }
+}
