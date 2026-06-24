@@ -26,7 +26,7 @@
       "autoPublish": false,
       "repository": "proof-computer/liskov-marketplace-offerings",
       "branch": "main",
-      "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober-ipfs.yml@refs/heads/main"
+      "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"
     }
   },
   "runtime": {

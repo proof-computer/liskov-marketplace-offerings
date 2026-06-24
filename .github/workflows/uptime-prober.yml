@@ -1,0 +1,33 @@
+name: uptime-prober artifact
+
+# Build → IPFS-pin (→ attest) the proof/uptime-prober offering app via the shared
+# reusable pipeline. See liskov-agent-orchestrator BKLG-20260624-m3a6 / jn9l.
+#
+# Pin @main today; switch to @v1 once liskov-github-actions tags a release.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "uptime-prober/**"
+      - ".github/workflows/uptime-prober.yml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  artifact:
+    uses: proof-computer/liskov-github-actions/.github/workflows/acurast-app.yml@main
+    with:
+      app-id: uptime-prober
+      working-directory: uptime-prober
+      entrypoint: app.cjs
+      # Flip to `true` once the `uptime-prober` Application is registered in liskov-rs
+      # (the artifact-pin route validates this repo + workflowRef against its
+      # artifactAutomation.github config). Until then, build + IPFS-pin only.
+      attest: false
+    secrets:
+      ACURAST_IPFS_URL: ${{ secrets.ACURAST_IPFS_URL }}
+      ACURAST_IPFS_API_KEY: ${{ secrets.ACURAST_IPFS_API_KEY }}
