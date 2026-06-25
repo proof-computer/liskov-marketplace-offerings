@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "entryId": "proof/uptime-prober",
+  "displayName": "Uptime Prober",
+  "summary": "Screenshots your site every 5 minutes from inside a mobile TEE and delivers it to your own Telegram bot.",
+  "description": "An Acurast app that, on a fixed 5-minute tick, renders a user-given URL **entirely inside the device WebView** (via Chrome DevTools Protocol), captures a PNG, and sends it to **your own Telegram bot** with a status caption (HTTP status, latency, timestamp). No PROOF bot and no provider secret — you supply the host plus your own bot token and chat id. The whole screenshot path runs in-job, with no dependency on Liskov or any external service beyond launch.",
+  "labels": ["uptime", "monitoring", "telegram"],
+  "appType": "background-worker",
+  "wedgeCategory": "residential-tee",
+  "source": {
+    "repository": "proof-computer/liskov-marketplace-offerings",
+    "ref": "refs/heads/main",
+    "path": "uptime-prober/.liskov/uptime-prober.policy.json"
+  },
+  "artifact": {
+    "cid": "ipfs://QmU5wfGNYzU6aYkvhPMpAH6HJFn2PvjfeqAMpdQkdnSHNo",
+    "digest": "",
+    "requiredEncryptionMode": "aes-256-gcm"
+  },
+  "policyTemplate": {
+    "domain": "proof.slipway.application-policy.v3",
+    "metadata": { "appType": "background-worker", "owner": "PROOF" },
+    "runtime": {
+      "runtime": "NodeJSWithBundle",
+      "durationMs": 900000,
+      "replacementRunwayMs": 300000,
+      "resources": { "memory": 512, "storage": 64, "networkRequests": 256 }
+    },
+    "acurast": {
+      "assignmentStrategy": "single",
+      "processorSelection": {
+        "mode": "open-market",
+        "requireScheduleClear": true,
+        "requireConsumerAccess": true,
+        "candidateLimit": 16
+      },
+      "budgetCaps": { "maxRewardPerLaunch": 40000000000, "maxNativeFeePerLaunch": 10000000000 }
+    },
+    "ingress": { "mode": "none" }
+  },
+  "optionsSchema": {
+    "host": {
+      "type": "env",
+      "source": "user",
+      "required": true,
+      "target": "UPTIME_PROBER_HOST",
+      "default": "https://example.com",
+      "label": "Host to probe",
+      "description": "URL screenshotted every 5 minutes (e.g. https://example.com)."
+    },
+    "telegramBotToken": {
+      "type": "secret",
+      "source": "user",
+      "required": true,
+      "target": "UPTIME_PROBER_TG_BOT_TOKEN",
+      "secretBundleId": "uptime-prober-tg",
+      "label": "Telegram bot token",
+      "description": "Your own bot token from BotFather (sealed via Lockbox; never stored in plaintext)."
+    },
+    "telegramChatId": {
+      "type": "env",
+      "source": "user",
+      "required": true,
+      "target": "UPTIME_PROBER_TG_CHAT_ID",
+      "label": "Telegram chat ID",
+      "description": "Your numeric chat id (after you /start your own bot)."
+    }
+  },
+  "pricingRequest": { "model": "free" }
+}
