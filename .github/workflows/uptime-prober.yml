@@ -25,10 +25,9 @@ jobs:
       working-directory: uptime-prober
       entrypoint: bundle.cjs
       extra-files: app.cjs
-      # Flip to `true` once the `uptime-prober` Application is registered in liskov-rs
-      # (the artifact-pin route validates this repo + workflowRef against its
-      # artifactAutomation.github config). Until then, build + IPFS-pin only.
-      attest: false
+      # The artifact-pin route validates this repo + workflowRef against the
+      # registered Application's artifactAutomation.github config.
+      attest: true
     secrets:
       ACURAST_IPFS_URL: ${{ secrets.ACURAST_IPFS_URL }}
       ACURAST_IPFS_API_KEY: ${{ secrets.ACURAST_IPFS_API_KEY }}
