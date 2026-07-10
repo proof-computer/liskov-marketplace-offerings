@@ -54,6 +54,7 @@ A normal run also logs the verdict on its first tick.
 | `UPTIME_PROBER_HOST` | user config (`env`) | URL to probe + screenshot |
 | `UPTIME_PROBER_TG_CHAT_ID` | user config (`env`) | numeric chat id (after `/start`ing your bot) |
 | `UPTIME_PROBER_TG_BOT_TOKEN` | user secret-option (`secret` → Lockbox → env) | the user's own bot token |
+| `UPTIME_PROBER_WEBHOOK_URL` | publisher config (`env`) | out-of-band diagnostics; set to `off` to disable |
 | `UPTIME_PROBER_MODE` | — | `run` (default) \| `spike` |
 | `UPTIME_PROBER_TICK_MS` | — | default `300000` (5 min, fixed) |
 

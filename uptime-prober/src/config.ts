@@ -11,6 +11,8 @@ export const ENV = {
   chatId: "UPTIME_PROBER_TG_CHAT_ID",
   /** User secret-option: the user's own bot token (Lockbox -> env). */
   botToken: "UPTIME_PROBER_TG_BOT_TOKEN",
+  /** Optional out-of-band diagnostic webhook. Set to "off" to disable. */
+  webhookUrl: "UPTIME_PROBER_WEBHOOK_URL",
   /** "run" (default) | "spike" (capability probe only, no loop). */
   mode: "UPTIME_PROBER_MODE",
   /** Fixed 5-minute tick; overridable for local/dev runs. */

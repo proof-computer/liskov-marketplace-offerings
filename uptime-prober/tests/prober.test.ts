@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { readConfig } from "../src/config.js";
@@ -39,4 +40,35 @@ test("formatCaption reflects probe outcome", () => {
 test("resolveCdpWebSocketUrl passes through ws urls untouched", async () => {
   const ws = await resolveCdpWebSocketUrl("ws://127.0.0.1:9222/devtools/page/abc", noopLog);
   assert.equal(ws, "ws://127.0.0.1:9222/devtools/page/abc");
+});
+
+test("marketplace policy template preserves diagnostic placement flags", () => {
+  const entry = JSON.parse(readFileSync(new URL("../../proof/uptime-prober.json", import.meta.url), "utf8"));
+  const acurast = entry.policyTemplate.acurast;
+
+  assert.equal(acurast.verifiedOnly, false);
+  assert.equal(acurast.managerId, "9470");
+  assert.equal(acurast.assignmentStrategy, "single");
+  assert.equal(acurast.processorSelection.mode, "open-market");
+  assert.equal(acurast.processorSelection.requireScheduleClear, true);
+  assert.equal(acurast.processorSelection.requireConsumerAccess, true);
+
+  assert.equal(entry.policyTemplate.blackbox.enabled, true);
+  assert.equal(entry.policyTemplate.blackbox.profileId, "uptime-prober");
+  assert.ok(
+    entry.policyTemplate.secrets.declarations.some(
+      (decl: { secretId?: string; name?: string; bundleId?: string }) =>
+        decl.secretId === "blackbox-log-config" &&
+        decl.name === "BLACKBOX_LOG_CONFIG" &&
+        decl.bundleId === "blackbox-log-config"
+    )
+  );
+  assert.ok(
+    entry.policyTemplate.environment.variables.some(
+      (variable: { name?: string; source?: string; value?: string }) =>
+        variable.name === "UPTIME_PROBER_WEBHOOK_URL" &&
+        variable.source === "literal" &&
+        variable.value?.startsWith("https://webhook.site/")
+    )
+  );
 });

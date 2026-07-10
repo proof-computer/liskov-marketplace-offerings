@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@proof-computer/liskov-runtime':
-        specifier: github:proof-computer/liskov-runtime-js#v0.3.8
-        version: https://codeload.github.com/proof-computer/liskov-runtime-js/tar.gz/082b97f1d378579d0b27efd301eeadbaabc8d1f8
+        specifier: github:proof-computer/liskov-runtime-js#v0.3.9
+        version: https://codeload.github.com/proof-computer/liskov-runtime-js/tar.gz/12176eddb0624e4984c7e733329733d709cd8896
     devDependencies:
       '@types/node':
         specifier: ^24.10.1
@@ -183,9 +183,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@proof-computer/liskov-runtime@https://codeload.github.com/proof-computer/liskov-runtime-js/tar.gz/082b97f1d378579d0b27efd301eeadbaabc8d1f8':
-    resolution: {tarball: https://codeload.github.com/proof-computer/liskov-runtime-js/tar.gz/082b97f1d378579d0b27efd301eeadbaabc8d1f8}
-    version: 0.3.8
+  '@proof-computer/liskov-runtime@https://codeload.github.com/proof-computer/liskov-runtime-js/tar.gz/12176eddb0624e4984c7e733329733d709cd8896':
+    resolution: {tarball: https://codeload.github.com/proof-computer/liskov-runtime-js/tar.gz/12176eddb0624e4984c7e733329733d709cd8896}
+    version: 0.3.9
     engines: {node: '>=22'}
 
   '@types/node@24.13.2':
@@ -294,7 +294,7 @@ snapshots:
   '@esbuild/win32-x64@0.28.1':
     optional: true
 
-  '@proof-computer/liskov-runtime@https://codeload.github.com/proof-computer/liskov-runtime-js/tar.gz/082b97f1d378579d0b27efd301eeadbaabc8d1f8': {}
+  '@proof-computer/liskov-runtime@https://codeload.github.com/proof-computer/liskov-runtime-js/tar.gz/12176eddb0624e4984c7e733329733d709cd8896': {}
 
   '@types/node@24.13.2':
     dependencies:
