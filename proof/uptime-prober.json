@@ -49,23 +49,7 @@
       "quote": { "required": false },
       "budgetCaps": { "maxRewardPerLaunch": 40000000000, "maxNativeFeePerLaunch": 10000000000 }
     },
-    "blackbox": {
-      "enabled": true,
-      "baseUrl": "https://logging.liskov.proof.computer",
-      "configSource": "operator.lockbox",
-      "sinkName": "uptime-prober"
-    },
-    "secrets": {
-      "declarations": [
-        {
-          "secretId": "blackbox-log-config",
-          "required": true,
-          "target": "env",
-          "name": "BLACKBOX_LOG_CONFIG",
-          "bundleId": "blackbox-log-config"
-        }
-      ]
-    },
+    "secrets": { "declarations": [] },
     "environment": {
       "variables": [
         {

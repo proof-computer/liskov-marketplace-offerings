@@ -54,17 +54,8 @@ test("marketplace policy template preserves diagnostic placement flags", () => {
   assert.equal(acurast.processorSelection.requireScheduleClear, true);
   assert.equal(acurast.processorSelection.requireConsumerAccess, true);
 
-  assert.equal(entry.policyTemplate.blackbox.enabled, true);
-  assert.equal(entry.policyTemplate.blackbox.configSource, "operator.lockbox");
-  assert.equal(entry.policyTemplate.blackbox.profileId, undefined);
-  assert.ok(
-    entry.policyTemplate.secrets.declarations.some(
-      (decl: { secretId?: string; name?: string; bundleId?: string }) =>
-        decl.secretId === "blackbox-log-config" &&
-        decl.name === "BLACKBOX_LOG_CONFIG" &&
-        decl.bundleId === "blackbox-log-config"
-    )
-  );
+  assert.equal(entry.policyTemplate.blackbox, undefined);
+  assert.deepEqual(entry.policyTemplate.secrets.declarations, []);
   assert.ok(
     entry.policyTemplate.environment.variables.some(
       (variable: { name?: string; source?: string; value?: string }) =>

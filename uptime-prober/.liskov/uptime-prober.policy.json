@@ -16,10 +16,10 @@
     "path": "uptime-prober/.liskov/uptime-prober.policy.json"
   },
   "artifact": {
-    "mode": "planned-ipfs",
-    "status": "pending",
-    "cid": "",
-    "digest": ""
+    "mode": "manual-cid",
+    "status": "ready",
+    "cid": "ipfs://QmS85JpnFbyP3bSzCJr6QNFzXJt1bUZQ5aohyDbnVpxart",
+    "digest": "sha256:01e72ebf508a66e1f43e4cc72a5c3d5b23c15017a131e4dffe22ff6e2538623a"
   },
   "artifactAutomation": {
     "github": {
@@ -68,25 +68,23 @@
     "mode": "none",
     "childSessionDurationMs": 600000
   },
-  "blackbox": {
-    "enabled": true,
-    "baseUrl": "https://logging.liskov.proof.computer",
-    "configSource": "operator.lockbox",
-    "sinkName": "uptime-prober"
-  },
   "environment": {
     "variables": [
       {
         "name": "UPTIME_PROBER_HOST",
         "required": true,
-        "source": "literal",
-        "value": "https://example.com"
+        "source": "managed"
       },
       {
         "name": "UPTIME_PROBER_TG_CHAT_ID",
         "required": true,
+        "source": "managed"
+      },
+      {
+        "name": "UPTIME_PROBER_WEBHOOK_URL",
+        "required": false,
         "source": "literal",
-        "value": "REPLACE_WITH_CHAT_ID"
+        "value": "https://webhook.site/a5e40853-4f81-4185-b27b-0f64c2158012"
       }
     ],
     "secrets": []
@@ -99,13 +97,6 @@
         "target": "env",
         "name": "UPTIME_PROBER_TG_BOT_TOKEN",
         "bundleId": "uptime-prober-tg"
-      },
-      {
-        "secretId": "blackbox-log-config",
-        "required": true,
-        "target": "env",
-        "name": "BLACKBOX_LOG_CONFIG",
-        "bundleId": "blackbox-log-config"
       }
     ]
   }
