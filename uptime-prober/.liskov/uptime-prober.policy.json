@@ -73,12 +73,14 @@
       {
         "name": "UPTIME_PROBER_HOST",
         "required": true,
-        "source": "managed"
+        "source": "managed",
+        "delivery": "slipway"
       },
       {
         "name": "UPTIME_PROBER_TG_CHAT_ID",
         "required": true,
-        "source": "managed"
+        "source": "managed",
+        "delivery": "slipway"
       },
       {
         "name": "UPTIME_PROBER_WEBHOOK_URL",

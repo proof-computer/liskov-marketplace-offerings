@@ -69,6 +69,7 @@
       "source": "user",
       "required": true,
       "target": "UPTIME_PROBER_HOST",
+      "delivery": "slipway",
       "default": "https://example.com",
       "label": "Host to probe",
       "description": "URL screenshotted every 5 minutes (e.g. https://example.com)."
@@ -87,6 +88,7 @@
       "source": "user",
       "required": true,
       "target": "UPTIME_PROBER_TG_CHAT_ID",
+      "delivery": "slipway",
       "label": "Telegram chat ID",
       "description": "Your numeric chat id (after you /start your own bot)."
     }
