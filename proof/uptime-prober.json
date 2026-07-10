@@ -13,8 +13,8 @@
     "path": "uptime-prober/.liskov/uptime-prober.policy.json"
   },
   "artifact": {
-    "cid": "ipfs://QmQxnosxHcd9YCReV5Q6z1mZTZRRcNzxBJA3axPKuSvd4k",
-    "digest": "sha256:be7ebc53a7bfa414e542a99a5c89b8e34f6cb4b9fad22f813a35a548d296cea4",
+    "cid": "ipfs://QmS85JpnFbyP3bSzCJr6QNFzXJt1bUZQ5aohyDbnVpxart",
+    "digest": "sha256:01e72ebf508a66e1f43e4cc72a5c3d5b23c15017a131e4dffe22ff6e2538623a",
     "requiredEncryptionMode": "aes-256-gcm"
   },
   "policyTemplate": {
@@ -25,6 +25,14 @@
       "durationMs": 900000,
       "replacementRunwayMs": 300000,
       "resources": { "memory": 512, "storage": 64, "networkRequests": 256 }
+    },
+    "artifactAutomation": {
+      "github": {
+        "autoPublish": true,
+        "repository": "proof-computer/liskov-marketplace-offerings",
+        "branch": "main",
+        "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"
+      }
     },
     "acurast": {
       "verifiedOnly": false,
