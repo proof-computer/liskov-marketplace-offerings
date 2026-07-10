@@ -7,7 +7,9 @@
 import {
   bootstrapSlipwayRuntime,
   createAcurastHttpPostFetch,
-  resolveRuntimeStd
+  createAcurastRuntimeAdapter,
+  resolveRuntimeStd,
+  type RuntimeIdentityProvider
 } from "@proof-computer/liskov-runtime";
 
 import { probeCapabilities } from "./capabilities.js";
@@ -19,6 +21,8 @@ import { formatCaption, sendMessage, sendPhoto } from "./telegram.js";
 import { emitWebhookEvent } from "./webhook.js";
 
 const COMPONENT = "uptime-prober";
+
+type BootstrapTrace = (phase: string, details?: Record<string, unknown>) => void;
 
 interface ProberRuntime {
   get(name: string): string | undefined;
@@ -119,15 +123,36 @@ async function runTick(runtime: ProberRuntime, config: ProberConfig, std: unknow
 
 /** Bootstrap the SDK runtime; degrade to a console/process-env runtime if unavailable (local spike). */
 async function bootstrapRuntime(): Promise<ProberRuntime> {
-  const fetchImpl = createAcurastHttpPostFetch() ?? (globalThis as { fetch?: typeof fetch }).fetch;
+  const std = resolveRuntimeStd();
+  const baseFetchImpl = createAcurastHttpPostFetch() ?? (globalThis as { fetch?: typeof fetch }).fetch;
+  const fetchImpl = typeof baseFetchImpl === "function"
+    ? traceBootstrapFetch(baseFetchImpl)
+    : baseFetchImpl;
+  const identityProvider = traceBootstrapIdentity(createAcurastRuntimeAdapter({ std }));
   try {
-    emitWebhookEvent("bootstrap-started", { hasFetch: typeof fetchImpl === "function" });
+    emitWebhookEvent("bootstrap-started", {
+      hasFetch: typeof fetchImpl === "function",
+      hasStd: std !== undefined
+    });
     const handle = await bootstrapSlipwayRuntime({
       appId: COMPONENT,
       component: COMPONENT,
+      std,
+      identityProvider,
       fetchImpl,
+      bootstrap: { mode: "signed" },
       secrets: { mode: "background" },
-      logging: { mode: "background" }
+      logging: { mode: "background" },
+      diagnostics: (event) => {
+        emitWebhookEvent("runtime-diagnostic", {
+          phase: event.phase,
+          stage: event.stage,
+          status: event.status,
+          ok: event.ok,
+          code: event.code,
+          message: event.message
+        });
+      }
     });
     const log: Log = (event, details) => {
       consoleLog(event, details);
@@ -148,6 +173,110 @@ async function bootstrapRuntime(): Promise<ProberRuntime> {
       stop: () => undefined
     };
   }
+}
+
+export function traceBootstrapFetch(
+  fetchImpl: typeof fetch,
+  trace: BootstrapTrace = emitWebhookEvent
+): typeof fetch {
+  return (async (input, init) => {
+    const target = publicFetchTarget(input, init);
+    trace("bootstrap-fetch-started", target);
+    try {
+      const response = await fetchImpl(input, init);
+      trace("bootstrap-fetch-completed", {
+        ...target,
+        status: response.status,
+        ok: response.ok
+      });
+      return response;
+    } catch (error) {
+      trace("bootstrap-fetch-failed", {
+        ...target,
+        error: errorSummary(error)
+      });
+      throw error;
+    }
+  }) as typeof fetch;
+}
+
+export function traceBootstrapIdentity(
+  identityProvider: RuntimeIdentityProvider,
+  trace: BootstrapTrace = emitWebhookEvent
+): RuntimeIdentityProvider {
+  return {
+    async resolveIdentity(options) {
+      trace("bootstrap-identity-started", {
+        requireEncryptionKey: options?.requireEncryptionKey === true
+      });
+      try {
+        const identity = await identityProvider.resolveIdentity(options);
+        trace("bootstrap-identity-completed", {
+          requireEncryptionKey: options?.requireEncryptionKey === true,
+          hasJobId: identity.jobId.length > 0,
+          hasProcessorId: identity.processorId.length > 0,
+          hasResponseEncryptionKey: Boolean(identity.responseEncryptionKey)
+        });
+        return identity;
+      } catch (error) {
+        trace("bootstrap-identity-failed", {
+          requireEncryptionKey: options?.requireEncryptionKey === true,
+          error: errorSummary(error)
+        });
+        throw error;
+      }
+    },
+    async sign(message) {
+      trace("bootstrap-sign-started", { messageBytes: message.byteLength });
+      try {
+        const signature = await identityProvider.sign(message);
+        trace("bootstrap-sign-completed", { hasSignature: signature.length > 0 });
+        return signature;
+      } catch (error) {
+        trace("bootstrap-sign-failed", { error: errorSummary(error) });
+        throw error;
+      }
+    },
+    async decryptGrantPayload(encrypted) {
+      trace("bootstrap-decrypt-started", {
+        ciphertextBytes: Math.floor(encrypted.ciphertextHex.length / 2)
+      });
+      try {
+        const plaintext = await identityProvider.decryptGrantPayload(encrypted);
+        trace("bootstrap-decrypt-completed", { plaintextBytes: plaintext.byteLength });
+        return plaintext;
+      } catch (error) {
+        trace("bootstrap-decrypt-failed", { error: errorSummary(error) });
+        throw error;
+      }
+    }
+  };
+}
+
+function publicFetchTarget(
+  input: Parameters<typeof fetch>[0],
+  init?: Parameters<typeof fetch>[1]
+): Record<string, unknown> {
+  let url: URL | undefined;
+  try {
+    if (typeof input === "string" || input instanceof URL) url = new URL(input);
+    else if (typeof Request !== "undefined" && input instanceof Request) url = new URL(input.url);
+  } catch {
+    url = undefined;
+  }
+  return {
+    method: init?.method ?? "GET",
+    urlHost: url?.hostname,
+    urlPath: url?.pathname,
+    urlProtocol: url?.protocol.replace(/:$/u, ""),
+    hasBody: init?.body !== undefined
+  };
+}
+
+function errorSummary(error: unknown): Record<string, unknown> {
+  return error instanceof Error
+    ? { name: error.name, message: error.message }
+    : { message: String(error) };
 }
 
 function consoleLog(event: string, details?: Record<string, unknown>): void {

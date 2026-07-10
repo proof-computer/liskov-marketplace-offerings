@@ -5,6 +5,7 @@ import { test } from "node:test";
 import { readConfig } from "../src/config.js";
 import { formatCaption } from "../src/telegram.js";
 import { resolveCdpWebSocketUrl } from "../src/cdp.js";
+import { traceBootstrapFetch, traceBootstrapIdentity } from "../src/runtime.js";
 
 const noopLog = () => undefined;
 
@@ -78,4 +79,49 @@ test("artifact workflow ships the stage0 wrapper and app bundle", () => {
 
   assert.match(workflow, /entrypoint:\s+bundle\.cjs/u);
   assert.match(workflow, /extra-files:\s+app\.cjs/u);
+});
+
+test("bootstrap tracing reports safe identity and HTTP milestones", async () => {
+  const events: Array<{ phase: string; details?: Record<string, unknown> }> = [];
+  const trace = (phase: string, details?: Record<string, unknown>) => events.push({ phase, details });
+  const identity = traceBootstrapIdentity({
+    async resolveIdentity() {
+      return { jobId: "job-secret", processorId: "processor-secret" };
+    },
+    async sign() {
+      return "signature-secret";
+    },
+    async decryptGrantPayload() {
+      return Buffer.from("plaintext-secret");
+    }
+  }, trace);
+  const fetchImpl = traceBootstrapFetch((async () => new Response("{}", { status: 200 })) as typeof fetch, trace);
+
+  await identity.resolveIdentity();
+  await identity.sign(Buffer.from("request"));
+  await identity.decryptGrantPayload({
+    senderPublicKey: "sender-secret",
+    saltHex: "salt-secret",
+    ciphertextHex: "001122"
+  });
+  await fetchImpl("https://liskov.example/api/jobs/runtime-bootstrap", {
+    method: "POST",
+    body: "request-secret"
+  });
+
+  assert.deepEqual(events.map((event) => event.phase), [
+    "bootstrap-identity-started",
+    "bootstrap-identity-completed",
+    "bootstrap-sign-started",
+    "bootstrap-sign-completed",
+    "bootstrap-decrypt-started",
+    "bootstrap-decrypt-completed",
+    "bootstrap-fetch-started",
+    "bootstrap-fetch-completed"
+  ]);
+  const serialized = JSON.stringify(events);
+  for (const secret of ["job-secret", "processor-secret", "signature-secret", "plaintext-secret", "request-secret"]) {
+    assert.doesNotMatch(serialized, new RegExp(secret));
+  }
+  assert.match(serialized, /runtime-bootstrap/);
 });
