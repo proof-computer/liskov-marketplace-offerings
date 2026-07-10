@@ -55,7 +55,8 @@ test("marketplace policy template preserves diagnostic placement flags", () => {
   assert.equal(acurast.processorSelection.requireConsumerAccess, true);
 
   assert.equal(entry.policyTemplate.blackbox.enabled, true);
-  assert.equal(entry.policyTemplate.blackbox.profileId, "uptime-prober");
+  assert.equal(entry.policyTemplate.blackbox.configSource, "operator.lockbox");
+  assert.equal(entry.policyTemplate.blackbox.profileId, undefined);
   assert.ok(
     entry.policyTemplate.secrets.declarations.some(
       (decl: { secretId?: string; name?: string; bundleId?: string }) =>

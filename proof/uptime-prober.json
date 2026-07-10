@@ -52,8 +52,7 @@
     "blackbox": {
       "enabled": true,
       "baseUrl": "https://logging.liskov.proof.computer",
-      "configSource": "operator.lockbox-profile",
-      "profileId": "uptime-prober",
+      "configSource": "operator.lockbox",
       "sinkName": "uptime-prober"
     },
     "secrets": {
