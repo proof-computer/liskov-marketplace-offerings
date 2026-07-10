@@ -1,21 +1,39 @@
-// Bundle the app to a single CJS artifact for the Acurast NodeJSWithBundle runtime.
-// Mirrors liskov-diagnostic's esbuild build (minified, no sourcemap, node target).
+// Bundle the app plus a canary-style stage0 wrapper for the Acurast NodeJSWithBundle runtime.
 
 import { mkdir } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { build } from "esbuild";
 
-await mkdir("dist", { recursive: true });
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const distDir = path.join(rootDir, "dist");
+const stage0Outfile = path.join(distDir, "bundle.cjs");
+const appOutfile = path.join(distDir, "app.cjs");
 
+await mkdir(distDir, { recursive: true });
 await build({
-  entryPoints: ["src/index.ts"],
-  outfile: "dist/app.cjs",
+  entryPoints: [path.join(rootDir, "src", "index.ts")],
+  outfile: appOutfile,
   bundle: true,
   platform: "node",
   format: "cjs",
-  target: "node22",
+  target: "node24",
   minify: true,
   sourcemap: false,
-  logLevel: "info"
+  legalComments: "none"
 });
 
-console.log("built dist/app.cjs");
+await build({
+  entryPoints: [path.join(rootDir, "src", "stage0.ts")],
+  outfile: stage0Outfile,
+  bundle: true,
+  platform: "node",
+  format: "cjs",
+  target: "node24",
+  minify: true,
+  sourcemap: false,
+  legalComments: "none"
+});
+
+console.log(`built ${stage0Outfile}`);
+console.log(`built ${appOutfile}`);

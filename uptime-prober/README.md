@@ -64,7 +64,7 @@ A normal run also logs the verdict on its first tick.
 pnpm install
 pnpm typecheck
 pnpm test
-pnpm build            # → dist/app.cjs (esbuild)
+pnpm build            # → dist/bundle.cjs (stage0) + dist/app.cjs (app)
 ```
 
 The spike needs a real Acurast processor (the WebView + CDP path); locally,
@@ -76,7 +76,8 @@ probe will report `webview missing` — expected off-device.
 This app deliberately reuses `liskov-diagnostic`'s deploy plumbing. **Still to add**
 (mechanical port, tracked in BKLG-20260624-002):
 
-- `scripts/upload-ipfs.ts` — pin `dist/app.cjs` to IPFS (no-spend), write the manifest.
+- The shared `liskov-github-actions` workflow pins the Acurast zip with `bundle.cjs`
+  as the stage0 entrypoint and `app.cjs` as the app payload.
 - `scripts/post-slipway-pin.ts` — post the GitHub-OIDC-attested pin to
   `/api/applications/uptime-prober/artifact-pins/github`.
 - `.github/workflows/uptime-prober-ipfs.yml` — typecheck → test → build → pin → attest

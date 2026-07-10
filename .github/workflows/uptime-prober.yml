@@ -23,7 +23,8 @@ jobs:
     with:
       app-id: uptime-prober
       working-directory: uptime-prober
-      entrypoint: app.cjs
+      entrypoint: bundle.cjs
+      extra-files: app.cjs
       # Flip to `true` once the `uptime-prober` Application is registered in liskov-rs
       # (the artifact-pin route validates this repo + workflowRef against its
       # artifactAutomation.github config). Until then, build + IPFS-pin only.

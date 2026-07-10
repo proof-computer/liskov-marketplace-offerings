@@ -72,3 +72,10 @@ test("marketplace policy template preserves diagnostic placement flags", () => {
     )
   );
 });
+
+test("artifact workflow ships the stage0 wrapper and app bundle", () => {
+  const workflow = readFileSync(new URL("../../.github/workflows/uptime-prober.yml", import.meta.url), "utf8");
+
+  assert.match(workflow, /entrypoint:\s+bundle\.cjs/u);
+  assert.match(workflow, /extra-files:\s+app\.cjs/u);
+});
