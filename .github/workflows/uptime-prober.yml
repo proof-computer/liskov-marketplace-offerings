@@ -12,6 +12,12 @@ on:
       - "uptime-prober/**"
       - ".github/workflows/uptime-prober.yml"
   workflow_dispatch:
+    inputs:
+      repair_managed_vars:
+        description: "One-off: publish the live policy with launch env vars managed"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   id-token: write
@@ -19,6 +25,7 @@ permissions:
 
 jobs:
   artifact:
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.repair_managed_vars }}
     uses: proof-computer/liskov-github-actions/.github/workflows/acurast-app.yml@main
     with:
       app-id: uptime-prober
@@ -31,3 +38,115 @@ jobs:
     secrets:
       ACURAST_IPFS_URL: ${{ secrets.ACURAST_IPFS_URL }}
       ACURAST_IPFS_API_KEY: ${{ secrets.ACURAST_IPFS_API_KEY }}
+
+  repair-managed-vars:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.repair_managed_vars }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write live managed-variable policy
+        shell: bash
+        run: |
+          cat > uptime-prober/.liskov/uptime-prober.policy.json <<'JSON'
+          {
+            "domain": "proof.slipway.application-policy.v3",
+            "applicationId": "uptime-prober",
+            "policyVersionId": "uptime-prober-v2",
+            "previousVersionId": "uptime-prober-v1",
+            "policyDigest": "a6422732d9231747a157541343850f508cac61e6883f1db8700ee0a662bab885",
+            "displayName": "Uptime Prober",
+            "replicas": 1,
+            "metadata": {
+              "appType": "background-worker",
+              "displayName": "Uptime Prober",
+              "labels": [
+                "uptime",
+                "monitoring",
+                "telegram"
+              ],
+              "owner": "PROOF"
+            },
+            "source": {
+              "path": "uptime-prober/.liskov/uptime-prober.policy.json",
+              "provider": "manual",
+              "repository": "proof-computer/liskov-marketplace-offerings"
+            },
+            "runtime": {
+              "desiredCount": 1,
+              "durationMs": 900000,
+              "keyVersion": 1,
+              "replacementRunwayMs": 300000,
+              "requiredModules": [],
+              "resources": {
+                "memory": 512,
+                "networkRequests": 256,
+                "storage": 64
+              },
+              "role": "uptime-prober",
+              "runtime": "NodeJSWithBundle",
+              "scriptCid": "ipfs://QmU5wfGNYzU6aYkvhPMpAH6HJFn2PvjfeqAMpdQkdnSHNo"
+            },
+            "artifact": {
+              "cid": "ipfs://QmU5wfGNYzU6aYkvhPMpAH6HJFn2PvjfeqAMpdQkdnSHNo",
+              "mode": "manual-cid",
+              "status": "ready"
+            },
+            "acurast": {
+              "assignmentStrategy": "single",
+              "budgetCaps": {
+                "maxNativeFeePerLaunch": 10000000000,
+                "maxRewardPerLaunch": 40000000000
+              },
+              "maxStartDelayMs": 300000,
+              "processorSelection": {
+                "candidateLimit": 16,
+                "mode": "open-market",
+                "requireConsumerAccess": true,
+                "requireScheduleClear": true
+              },
+              "startDelayMs": 300000,
+              "verifiedOnly": false
+            },
+            "ingress": {
+              "childSessionDurationMs": 600000,
+              "mode": "none"
+            },
+            "environment": {
+              "variables": [
+                {
+                  "name": "UPTIME_PROBER_HOST",
+                  "source": "managed",
+                  "required": true
+                },
+                {
+                  "name": "UPTIME_PROBER_TG_CHAT_ID",
+                  "source": "managed",
+                  "required": true
+                }
+              ]
+            },
+            "secrets": {
+              "declarations": [
+                {
+                  "secretId": "uptime-prober-tg-bot-token",
+                  "required": true,
+                  "target": "env",
+                  "name": "UPTIME_PROBER_TG_BOT_TOKEN",
+                  "bundleId": "uptime-prober-tg"
+                }
+              ]
+            },
+            "status": "active",
+            "ownerAddress": "github:385251",
+            "publishedAtMs": 1783687402408,
+            "signatures": []
+          }
+          JSON
+      - uses: proof-computer/liskov-github-actions/actions/policy-import@main
+        with:
+          application-id: uptime-prober
+          policy-path: uptime-prober/.liskov/uptime-prober.policy.json
+          publish: "true"
