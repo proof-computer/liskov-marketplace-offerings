@@ -26,6 +26,15 @@
       "replacementRunwayMs": 300000,
       "resources": { "memory": 512, "storage": 64, "networkRequests": 256 }
     },
+    "blackbox": {
+      "enabled": true,
+      "baseUrl": "https://logging.liskov.proof.computer",
+      "configSource": "liskov.builtin",
+      "envName": "BLACKBOX_LOG_CONFIG",
+      "sinkName": "uptime-prober",
+      "spoolDir": "spool/blackbox",
+      "context": {}
+    },
     "artifactAutomation": {
       "github": {
         "autoPublish": true,

@@ -22,7 +22,11 @@ export interface ScreenshotResult {
   debugUrl: string;
   wsUrl: string;
   capturedAtMs: number;
+  width: number;
+  height: number;
 }
+
+export const SCREENSHOT_VIEWPORT = { width: 1280, height: 720, deviceScaleFactor: 1 } as const;
 
 export async function captureHostScreenshot(options: ScreenshotOptions): Promise<ScreenshotResult> {
   const { host, std, log } = options;
@@ -43,15 +47,20 @@ export async function captureHostScreenshot(options: ScreenshotOptions): Promise
     await delay(settleMs);
 
     const debugUrl = webview.getDebugUrl();
-    log("screenshot.debug-url", { debugUrl });
+    log("screenshot.debug-url", { endpointPath: safeEndpointPath(debugUrl) });
     if (!debugUrl) {
       throw new Error("getDebugUrl() returned an empty value");
     }
 
     const wsUrl = await resolveCdpWebSocketUrl(debugUrl, log);
-    const png = await captureScreenshotViaCdp(wsUrl, options.cdp ?? {}, log);
-    log("screenshot.captured", { bytes: png.length });
-    return { png, debugUrl, wsUrl, capturedAtMs: Date.now() };
+    const cdp = { ...SCREENSHOT_VIEWPORT, ...options.cdp };
+    const png = await captureScreenshotViaCdp(wsUrl, cdp, log);
+    const dimensions = validatePng(png);
+    if (dimensions.width !== cdp.width || dimensions.height !== cdp.height) {
+      throw new Error(`screenshot dimensions ${dimensions.width}x${dimensions.height} did not match viewport ${cdp.width}x${cdp.height}`);
+    }
+    log("screenshot.captured", { bytes: png.length, ...dimensions });
+    return { png, debugUrl, wsUrl, capturedAtMs: Date.now(), ...dimensions };
   } finally {
     if (tab) {
       try { tab.stopRefreshLoop(); } catch { /* ignore */ }
@@ -60,6 +69,22 @@ export async function captureHostScreenshot(options: ScreenshotOptions): Promise
   }
 }
 
+export function validatePng(png: Buffer): { width: number; height: number } {
+  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  if (png.length < 33 || !png.subarray(0, 8).equals(signature)) throw new Error("screenshot is not a PNG");
+  if (png.readUInt32BE(8) !== 13 || png.subarray(12, 16).toString("ascii") !== "IHDR") {
+    throw new Error("screenshot PNG has no valid IHDR");
+  }
+  const width = png.readUInt32BE(16);
+  const height = png.readUInt32BE(20);
+  if (width < 1 || height < 1 || width > 16_384 || height > 16_384) throw new Error("screenshot PNG dimensions are invalid");
+  return { width, height };
+}
+
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function safeEndpointPath(value: string): string | undefined {
+  try { return new URL(value).pathname || "/"; } catch { return undefined; }
 }

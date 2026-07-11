@@ -1,7 +1,7 @@
 // Entry point for the uptime-prober Acurast app.
 // See BKLG-20260624-002 + the catalog schema spec for the offering contract.
 
-import { startUptimeProber, type ProberHandle } from "./runtime.js";
+import { recordEarlyRuntimeEvent, startUptimeProber, type ProberHandle } from "./runtime.js";
 import { emitWebhookEvent, flushWebhookEvents, webhookRunId } from "./webhook.js";
 
 let handle: ProberHandle | undefined;
@@ -9,6 +9,14 @@ let handle: ProberHandle | undefined;
 emitWebhookEvent("process-start", {
   runId: webhookRunId(),
   pid: process.pid,
+  nodeVersion: process.version,
+  platform: process.platform,
+  arch: process.arch,
+  hasFetch: typeof globalThis.fetch === "function",
+  hasHttpPost: typeof (globalThis as { httpPOST?: unknown }).httpPOST === "function",
+  hasStd: typeof (globalThis as { _STD_?: unknown })._STD_ === "object"
+});
+recordEarlyRuntimeEvent("process-start", {
   nodeVersion: process.version,
   platform: process.platform,
   arch: process.arch,
@@ -34,6 +42,7 @@ void main();
 async function main(): Promise<void> {
   try {
     emitWebhookEvent("main-entered");
+    recordEarlyRuntimeEvent("main-entered");
     handle = await startUptimeProber();
     emitWebhookEvent("main-ready");
   } catch (error) {
@@ -48,7 +57,7 @@ async function shutdown(signal: string): Promise<void> {
   console.log(`[uptime] ${signal} received, stopping`);
   try {
     emitWebhookEvent("shutdown", { signal });
-    handle?.stop();
+    await handle?.stop();
   } finally {
     await flushWebhookEvents();
     process.exit(0);

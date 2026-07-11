@@ -19,22 +19,26 @@ import { probeHost } from "./probe.js";
 import { captureHostScreenshot } from "./screenshot.js";
 import { formatCaption, sendMessage, sendPhoto } from "./telegram.js";
 import { emitWebhookEvent } from "./webhook.js";
+import { startFixedCadenceScheduler, type TickContext } from "./scheduler.js";
 
 const COMPONENT = "uptime-prober";
+const earlyRuntimeEvents: Array<{ event: string; details?: Record<string, unknown> }> = [];
 
 type BootstrapTrace = (phase: string, details?: Record<string, unknown>) => void;
 
 interface ProberRuntime {
   get(name: string): string | undefined;
   log: Log;
+  flush(): Promise<unknown>;
   stop(): void;
 }
 
 export interface ProberHandle {
-  stop(): void;
+  stop(): Promise<void>;
 }
 
 export async function startUptimeProber(): Promise<ProberHandle> {
+  recordEarlyRuntimeEvent("runtime-start-entered");
   emitWebhookEvent("runtime-start-entered");
   const std = resolveRuntimeStd();
   const runtime = await bootstrapRuntime();
@@ -57,37 +61,41 @@ export async function startUptimeProber(): Promise<ProberHandle> {
   });
   if (config.mode === "spike") {
     log("spike.done", { verdict: report.verdict, errors: report.errors });
-    return { stop: () => runtime.stop() };
+    return { stop: async () => { await runtime.flush(); runtime.stop(); } };
   }
   if (report.verdict !== "go") {
     log("degraded", { verdict: report.verdict, errors: report.errors });
   }
 
-  let stopped = false;
-  const tick = () =>
-    runTick(runtime, config, std, log).catch((error) => log("tick.error", { error: String(error) }));
-
-  await tick(); // immediate first delivery
-  const timer = setInterval(() => {
-    if (!stopped) void tick();
-  }, config.tickMs);
-  if (typeof (timer as { unref?: () => void }).unref === "function") {
-    (timer as { unref?: () => void }).unref?.();
-  }
+  const scheduler = startFixedCadenceScheduler({
+    cadenceMs: config.tickMs,
+    tick: async (context) => {
+      const startedAt = Date.now();
+      try {
+        await runTick(runtime, config, std, log, context);
+      } catch (error) {
+        log("tick.error", { ...context, error: safeRuntimeError(error) });
+      } finally {
+        log("tick.complete", { ...context, durationMs: Date.now() - startedAt });
+        const flush = await runtime.flush().catch((error) => ({ ok: false, error: safeRuntimeError(error) }));
+        consoleLog("tick.flush", { sequence: context.sequence, result: flush as Record<string, unknown> });
+      }
+    }
+  });
 
   return {
-    stop: () => {
-      stopped = true;
-      clearInterval(timer);
+    stop: async () => {
+      await scheduler.stop();
+      await runtime.flush();
       runtime.stop();
     }
   };
 }
 
-async function runTick(runtime: ProberRuntime, config: ProberConfig, std: unknown, log: Log): Promise<void> {
+async function runTick(runtime: ProberRuntime, config: ProberConfig, std: unknown, log: Log, context: TickContext): Promise<void> {
   const botToken = runtime.get(ENV.botToken);
   const probe = await probeHost(config.host);
-  log("tick", { host: config.host, probeOk: probe.ok, status: probe.status, latencyMs: probe.latencyMs });
+  log("tick", { ...context, host: config.host, probeOk: probe.ok, status: probe.status, latencyMs: probe.latencyMs });
   emitWebhookEvent("tick", { host: config.host, probeOk: probe.ok, status: probe.status, latencyMs: probe.latencyMs });
 
   if (!botToken) {
@@ -109,9 +117,11 @@ async function runTick(runtime: ProberRuntime, config: ProberConfig, std: unknow
   const caption = formatCaption(config.host, probe, Date.now());
   try {
     if (png) {
-      await sendPhoto({ botToken, chatId: config.chatId, png, caption });
+      const receipt = await sendPhoto({ botToken, chatId: config.chatId, png, caption });
+      log("tick.telegram-receipt", receipt as unknown as Record<string, unknown>);
     } else {
-      await sendMessage({ botToken, chatId: config.chatId, text: caption });
+      const receipt = await sendMessage({ botToken, chatId: config.chatId, text: caption });
+      log("tick.telegram-receipt", receipt as unknown as Record<string, unknown>);
     }
     log("tick.delivered", { withPhoto: Boolean(png), bytes: png?.length });
     emitWebhookEvent("tick-delivered", { withPhoto: Boolean(png), bytes: png?.length });
@@ -123,12 +133,16 @@ async function runTick(runtime: ProberRuntime, config: ProberConfig, std: unknow
 
 /** Bootstrap the SDK runtime; degrade to a console/process-env runtime if unavailable (local spike). */
 async function bootstrapRuntime(): Promise<ProberRuntime> {
+  const trace: BootstrapTrace = (event, details) => {
+    emitWebhookEvent(event, details);
+    recordEarlyRuntimeEvent(event, details);
+  };
   const std = resolveRuntimeStd();
   const baseFetchImpl = createAcurastHttpPostFetch() ?? (globalThis as { fetch?: typeof fetch }).fetch;
   const fetchImpl = typeof baseFetchImpl === "function"
-    ? traceBootstrapFetch(baseFetchImpl)
+    ? traceBootstrapFetch(baseFetchImpl, trace)
     : baseFetchImpl;
-  const identityProvider = traceBootstrapIdentity(createAcurastRuntimeAdapter({ std }));
+  const identityProvider = traceBootstrapIdentity(createAcurastRuntimeAdapter({ std }), trace);
   try {
     emitWebhookEvent("bootstrap-started", {
       hasFetch: typeof fetchImpl === "function",
@@ -154,13 +168,17 @@ async function bootstrapRuntime(): Promise<ProberRuntime> {
         });
       }
     });
+    for (const entry of earlyRuntimeEvents.splice(0)) {
+      await handle.log(`uptime.${entry.event}`, entry.details, { labels: { component: COMPONENT, phase: "pre-bootstrap" } });
+    }
+    await handle.flush();
     const log: Log = (event, details) => {
       consoleLog(event, details);
       emitWebhookEvent(event, details);
       void handle.log(`uptime.${event}`, details, { labels: { component: COMPONENT } }).catch(() => undefined);
     };
     emitWebhookEvent("bootstrap-succeeded");
-    return { get: (name) => handle.env.get(name), log, stop: () => handle.stop() };
+    return { get: (name) => handle.env.get(name), log, flush: () => handle.flush(), stop: () => handle.stop() };
   } catch (error) {
     consoleLog("bootstrap.fallback", { error: String(error) });
     emitWebhookEvent("bootstrap-fallback", { error: String(error) });
@@ -170,9 +188,15 @@ async function bootstrapRuntime(): Promise<ProberRuntime> {
         consoleLog(event, details);
         emitWebhookEvent(event, details);
       },
+      flush: async () => ({ ok: false, state: "degraded", flushed: 0, pending: 0, dropped: 0 }),
       stop: () => undefined
     };
   }
+}
+
+export function recordEarlyRuntimeEvent(event: string, details?: Record<string, unknown>): void {
+  if (earlyRuntimeEvents.length >= 200) earlyRuntimeEvents.shift();
+  earlyRuntimeEvents.push({ event, details });
 }
 
 export function traceBootstrapFetch(
@@ -277,6 +301,10 @@ function errorSummary(error: unknown): Record<string, unknown> {
   return error instanceof Error
     ? { name: error.name, message: error.message }
     : { message: String(error) };
+}
+
+function safeRuntimeError(error: unknown): Record<string, unknown> {
+  return errorSummary(error);
 }
 
 function consoleLog(event: string, details?: Record<string, unknown>): void {

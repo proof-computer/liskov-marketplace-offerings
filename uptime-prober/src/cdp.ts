@@ -28,36 +28,75 @@ export function webSocketCtor(): WebSocketCtor | undefined {
  * - http://… / https://… → discovered via the DevTools /json[/list] endpoint
  *   (`webSocketDebuggerUrl` of the first `page` target).
  */
-export async function resolveCdpWebSocketUrl(debugUrl: string, log: Log): Promise<string> {
+export interface CdpDiscoveryOptions {
+  timeoutMs?: number;
+  fetchImpl?: typeof fetch;
+}
+
+export async function resolveCdpWebSocketUrl(
+  debugUrl: string,
+  log: Log,
+  options: CdpDiscoveryOptions = {}
+): Promise<string> {
   const trimmed = debugUrl.trim();
-  if (trimmed.startsWith("ws://") || trimmed.startsWith("wss://")) {
-    log("cdp.ws-url.direct", { debugUrl: trimmed });
+  const parsed = safeUrl(trimmed);
+  if (parsed && (parsed.protocol === "ws:" || parsed.protocol === "wss:") && parsed.pathname.startsWith("/devtools/")) {
+    log("cdp.ws-url.direct", { endpointPath: parsed.pathname });
     return trimmed;
   }
-  const fetchImpl = (globalThis as { fetch?: typeof fetch }).fetch;
+  const fetchImpl = options.fetchImpl ?? (globalThis as { fetch?: typeof fetch }).fetch;
   if (typeof fetchImpl !== "function") {
-    throw new Error(`getDebugUrl returned non-ws URL (${trimmed}) and global fetch is unavailable for /json discovery`);
+    throw new Error("CDP target discovery requires global fetch");
   }
-  const base = trimmed.replace(/\/+$/, "");
+  if (!parsed || !["http:", "https:", "ws:", "wss:"].includes(parsed.protocol)) {
+    throw new Error("getDebugUrl returned an unsupported DevTools origin");
+  }
+  parsed.protocol = parsed.protocol === "wss:" ? "https:" : parsed.protocol === "ws:" ? "http:" : parsed.protocol;
+  parsed.pathname = "";
+  parsed.search = "";
+  parsed.hash = "";
+  const base = parsed.toString().replace(/\/$/u, "");
+  const timeoutMs = options.timeoutMs ?? 5_000;
   for (const path of ["/json/list", "/json"]) {
     const url = `${base}${path}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const res = await fetchImpl(url);
+      const res = await fetchImpl(url, { signal: controller.signal });
+      const contentType = res.headers.get("content-type")?.split(";", 1)[0]?.trim();
+      const body = await res.text();
+      const diagnostic = { endpointPath: path, status: res.status, contentType, responseBytes: Buffer.byteLength(body) };
       if (!res.ok) {
-        log("cdp.ws-url.discovery-status", { url, status: res.status });
+        log("cdp.ws-url.discovery-status", diagnostic);
         continue;
       }
-      const targets = (await res.json()) as Array<{ type?: string; webSocketDebuggerUrl?: string }>;
+      let targets: Array<{ type?: string; webSocketDebuggerUrl?: string }>;
+      try {
+        const decoded: unknown = JSON.parse(body);
+        if (!Array.isArray(decoded)) throw new Error("target list is not an array");
+        targets = decoded;
+      } catch {
+        log("cdp.ws-url.discovery-malformed", diagnostic);
+        continue;
+      }
       const page = targets.find((t) => t.type === "page" && t.webSocketDebuggerUrl) ?? targets.find((t) => t.webSocketDebuggerUrl);
       if (page?.webSocketDebuggerUrl) {
-        log("cdp.ws-url.discovered", { url, wsUrl: page.webSocketDebuggerUrl });
+        const target = safeUrl(page.webSocketDebuggerUrl);
+        if (!target || !["ws:", "wss:"].includes(target.protocol) || !target.pathname.startsWith("/devtools/")) {
+          log("cdp.ws-url.discovery-malformed", diagnostic);
+          continue;
+        }
+        log("cdp.ws-url.discovered", { ...diagnostic, targetPath: target.pathname });
         return page.webSocketDebuggerUrl;
       }
+      log("cdp.ws-url.discovery-no-page", diagnostic);
     } catch (error) {
-      log("cdp.ws-url.discovery-error", { url, error: String(error) });
+      log("cdp.ws-url.discovery-error", { endpointPath: path, error: safeError(error) });
+    } finally {
+      clearTimeout(timer);
     }
   }
-  throw new Error(`could not resolve a CDP webSocketDebuggerUrl from ${trimmed}`);
+  throw new Error("could not resolve a page CDP target from the DevTools origin");
 }
 
 export interface CdpScreenshotOptions {
@@ -140,7 +179,7 @@ export function captureScreenshotViaCdp(
     ws.onopen = () => {
       void (async () => {
         try {
-          log("cdp.connected", { wsUrl });
+          log("cdp.connected", { endpointPath: safeUrl(wsUrl)?.pathname });
           await send("Page.enable");
           if (options.width && options.height) {
             await send("Emulation.setDeviceMetricsOverride", {
@@ -163,6 +202,16 @@ export function captureScreenshotViaCdp(
       })();
     };
   });
+}
+
+function safeUrl(value: string): URL | undefined {
+  try { return new URL(value); } catch { return undefined; }
+}
+
+function safeError(value: unknown): Record<string, unknown> {
+  if (!(value instanceof Error)) return { message: String(value) };
+  const cause = value.cause as { code?: unknown } | undefined;
+  return { name: value.name, message: value.message, causeCode: typeof cause?.code === "string" ? cause.code : undefined };
 }
 
 function describe(value: unknown): string {

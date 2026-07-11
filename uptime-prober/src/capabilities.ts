@@ -15,7 +15,7 @@ export interface CapabilityReport {
   webviewPresent: boolean;
   webSocketPresent: boolean;
   telegramMultipart: boolean;
-  debugUrl?: string;
+  debugEndpointPath?: string;
   screenshotBytes?: number;
   screenshotOk: boolean;
   errors: string[];
@@ -41,14 +41,14 @@ export async function probeCapabilities(options: CapabilityProbeOptions): Promis
   if (!webSocketPresent) errors.push("global WebSocket missing (CDP needs it)");
   if (!telegramMultipart) errors.push("fetch/FormData/Blob missing (sendPhoto needs them)");
 
-  let debugUrl: string | undefined;
+  let debugEndpointPath: string | undefined;
   let screenshotBytes: number | undefined;
   let screenshotOk = false;
 
   if (webviewPresent && webSocketPresent) {
     try {
       const shot = await captureHostScreenshot({ host, std, settleMs: options.settleMs, log });
-      debugUrl = shot.debugUrl;
+      try { debugEndpointPath = new URL(shot.wsUrl).pathname; } catch { debugEndpointPath = undefined; }
       screenshotBytes = shot.png.length;
       screenshotOk = shot.png.length > 0;
     } catch (error) {
@@ -61,7 +61,7 @@ export async function probeCapabilities(options: CapabilityProbeOptions): Promis
     webviewPresent,
     webSocketPresent,
     telegramMultipart,
-    debugUrl,
+    debugEndpointPath,
     screenshotBytes,
     screenshotOk,
     errors,

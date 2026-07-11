@@ -3,9 +3,11 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { readConfig } from "../src/config.js";
-import { formatCaption } from "../src/telegram.js";
+import { formatCaption, safeTransportError, sendPhoto } from "../src/telegram.js";
 import { resolveCdpWebSocketUrl } from "../src/cdp.js";
 import { traceBootstrapFetch, traceBootstrapIdentity } from "../src/runtime.js";
+import { validatePng } from "../src/screenshot.js";
+import { startFixedCadenceScheduler } from "../src/scheduler.js";
 
 const noopLog = () => undefined;
 
@@ -43,6 +45,91 @@ test("resolveCdpWebSocketUrl passes through ws urls untouched", async () => {
   assert.equal(ws, "ws://127.0.0.1:9222/devtools/page/abc");
 });
 
+test("resolveCdpWebSocketUrl discovers bare ws origins and falls back to /json", async () => {
+  const calls: string[] = [];
+  const events: Array<Record<string, unknown> | undefined> = [];
+  const fetchImpl = (async (input: string | URL | Request) => {
+    const url = String(input);
+    calls.push(url);
+    if (url.endsWith("/json/list")) return new Response("missing", { status: 404, headers: { "content-type": "text/plain" } });
+    return Response.json([{ type: "page", webSocketDebuggerUrl: "ws://127.0.0.1:9222/devtools/page/page-1" }]);
+  }) as typeof fetch;
+  const resolved = await resolveCdpWebSocketUrl("ws://127.0.0.1:9222", (_event, details) => events.push(details), { fetchImpl });
+  assert.equal(resolved, "ws://127.0.0.1:9222/devtools/page/page-1");
+  assert.deepEqual(calls, ["http://127.0.0.1:9222/json/list", "http://127.0.0.1:9222/json"]);
+  const serialized = JSON.stringify(events);
+  assert.doesNotMatch(serialized, /missing/u);
+  assert.match(serialized, /responseBytes/u);
+});
+
+test("resolveCdpWebSocketUrl rejects malformed target lists", async () => {
+  const fetchImpl = (async () => Response.json({ webSocketDebuggerUrl: "ws://secret/devtools/page/x" })) as typeof fetch;
+  await assert.rejects(resolveCdpWebSocketUrl("http://127.0.0.1:9222", noopLog, { fetchImpl }), /could not resolve/u);
+});
+
+test("validatePng checks signature, IHDR, and dimensions", () => {
+  const png = Buffer.alloc(33);
+  Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(png);
+  png.writeUInt32BE(13, 8);
+  png.write("IHDR", 12, "ascii");
+  png.writeUInt32BE(1280, 16);
+  png.writeUInt32BE(720, 20);
+  assert.deepEqual(validatePng(png), { width: 1280, height: 720 });
+  assert.throws(() => validatePng(Buffer.alloc(33)), /not a PNG/u);
+});
+
+test("fixed cadence scheduler runs immediately, serializes ticks, and stops", async () => {
+  let active = 0;
+  let maxActive = 0;
+  const contexts: Array<{ sequence: number; scheduledAtMs: number }> = [];
+  const scheduler = startFixedCadenceScheduler({
+    cadenceMs: 10,
+    async tick(context) {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      contexts.push(context);
+      await new Promise((resolve) => setTimeout(resolve, 18));
+      active -= 1;
+    }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 58));
+  await scheduler.stop();
+  assert.equal(maxActive, 1);
+  assert.ok(contexts.length >= 2);
+  assert.equal(contexts[0]?.sequence, 1);
+  assert.ok((contexts[1]?.scheduledAtMs ?? 0) > (contexts[0]?.scheduledAtMs ?? 0));
+  await scheduler.done;
+});
+
+test("Telegram sendPhoto returns a safe receipt", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async () => Response.json({
+    ok: true,
+    result: {
+      message_id: 44,
+      caption: "caption",
+      chat: { type: "private" },
+      photo: [{ file_id: "small", width: 90, height: 50 }, { file_id: "large", width: 1280, height: 720 }]
+    }
+  })) as typeof fetch;
+  try {
+    const receipt = await sendPhoto({ botToken: "123:secret", chatId: "1", png: Buffer.from("png"), caption: "caption" });
+    assert.deepEqual(receipt, {
+      operation: "sendPhoto", messageId: 44, caption: "caption", chatType: "private",
+      photo: { fileId: "large", width: 1280, height: 720 }
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Telegram transport errors redact token URLs and preserve safe cause codes", () => {
+  const error = new Error("fetch https://api.telegram.org/bot123:secret/sendPhoto failed", { cause: { code: "ENOTFOUND" } });
+  const summary = JSON.stringify(safeTransportError(error));
+  assert.doesNotMatch(summary, /123:secret/u);
+  assert.match(summary, /ENOTFOUND/u);
+});
+
 test("marketplace policy template preserves diagnostic placement flags", () => {
   const entry = JSON.parse(readFileSync(new URL("../../proof/uptime-prober.json", import.meta.url), "utf8"));
   const acurast = entry.policyTemplate.acurast;
@@ -57,7 +144,7 @@ test("marketplace policy template preserves diagnostic placement flags", () => {
   assert.equal(entry.optionsSchema.host.delivery, "slipway");
   assert.equal(entry.optionsSchema.telegramChatId.delivery, "slipway");
 
-  assert.equal(entry.policyTemplate.blackbox, undefined);
+  assert.equal(entry.policyTemplate.blackbox.configSource, "liskov.builtin");
   assert.deepEqual(entry.policyTemplate.secrets.declarations, []);
   assert.ok(
     entry.policyTemplate.environment.variables.some(

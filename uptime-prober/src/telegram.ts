@@ -26,9 +26,18 @@ export interface SendPhotoInput {
   chatId: string;
   png: Buffer;
   caption?: string;
+  timeoutMs?: number;
 }
 
-export async function sendPhoto(input: SendPhotoInput): Promise<void> {
+export interface TelegramReceipt {
+  operation: "sendPhoto" | "sendMessage";
+  messageId: number;
+  caption?: string;
+  chatType?: string;
+  photo?: { fileId: string; width: number; height: number };
+}
+
+export async function sendPhoto(input: SendPhotoInput): Promise<TelegramReceipt> {
   const g = globalThis as TelegramGlobals;
   if (!g.fetch || !g.FormData || !g.Blob) {
     throw new Error("telegram sendPhoto needs global fetch + FormData + Blob");
@@ -39,25 +48,24 @@ export async function sendPhoto(input: SendPhotoInput): Promise<void> {
   // Uint8Array view keeps the bytes intact through Blob.
   form.append("photo", new g.Blob([new Uint8Array(input.png)], { type: "image/png" }), "screenshot.png");
 
-  const res = await g.fetch(`${TELEGRAM_API}/bot${input.botToken}/sendPhoto`, { method: "POST", body: form });
-  await assertOk(res, "sendPhoto");
+  return telegramRequest(g.fetch, input.botToken, "sendPhoto", { method: "POST", body: form }, input.timeoutMs);
 }
 
 export interface SendMessageInput {
   botToken: string;
   chatId: string;
   text: string;
+  timeoutMs?: number;
 }
 
-export async function sendMessage(input: SendMessageInput): Promise<void> {
+export async function sendMessage(input: SendMessageInput): Promise<TelegramReceipt> {
   const fetchImpl = (globalThis as TelegramGlobals).fetch;
   if (!fetchImpl) throw new Error("telegram sendMessage needs global fetch");
-  const res = await fetchImpl(`${TELEGRAM_API}/bot${input.botToken}/sendMessage`, {
+  return telegramRequest(fetchImpl, input.botToken, "sendMessage", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ chat_id: input.chatId, text: input.text })
-  });
-  await assertOk(res, "sendMessage");
+  }, input.timeoutMs);
 }
 
 export function formatCaption(host: string, probe: ProbeResult, atMs: number): string {
@@ -69,9 +77,48 @@ export function formatCaption(host: string, probe: ProbeResult, atMs: number): s
   return `⚠️ ${host}\n${detail} · ${probe.latencyMs}ms\n${when}`;
 }
 
-async function assertOk(res: { ok: boolean; status: number; text(): Promise<string> }, op: string): Promise<void> {
-  if (res.ok) return;
-  let body = "";
-  try { body = await res.text(); } catch { /* ignore */ }
-  throw new Error(`telegram ${op} failed: HTTP ${res.status} ${body.slice(0, 300)}`);
+async function telegramRequest(
+  fetchImpl: typeof fetch,
+  botToken: string,
+  operation: TelegramReceipt["operation"],
+  init: RequestInit,
+  timeoutMs = 20_000
+): Promise<TelegramReceipt> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let res: Response;
+  try {
+    res = await fetchImpl(`${TELEGRAM_API}/bot${botToken}/${operation}`, { ...init, signal: controller.signal });
+  } catch (error) {
+    throw new Error(`telegram ${operation} transport failed: ${JSON.stringify(safeTransportError(error))}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  let decoded: unknown;
+  try { decoded = await res.json(); } catch { decoded = undefined; }
+  const response = decoded as { ok?: boolean; description?: string; error_code?: number; result?: Record<string, unknown> } | undefined;
+  if (!res.ok || response?.ok !== true || !response.result) {
+    const description = typeof response?.description === "string" ? response.description.slice(0, 200) : undefined;
+    throw new Error(`telegram ${operation} failed: ${JSON.stringify({ status: res.status, errorCode: response?.error_code, description })}`);
+  }
+  const result = response.result;
+  const photos = Array.isArray(result.photo) ? result.photo as Array<Record<string, unknown>> : [];
+  const photo = [...photos].sort((a, b) => Number(b.width ?? 0) * Number(b.height ?? 0) - Number(a.width ?? 0) * Number(a.height ?? 0))[0];
+  return {
+    operation,
+    messageId: Number(result.message_id),
+    caption: typeof result.caption === "string" ? result.caption : undefined,
+    chatType: typeof (result.chat as Record<string, unknown> | undefined)?.type === "string" ? String((result.chat as Record<string, unknown>).type) : undefined,
+    photo: photo && typeof photo.file_id === "string" ? { fileId: photo.file_id, width: Number(photo.width), height: Number(photo.height) } : undefined
+  };
+}
+
+export function safeTransportError(error: unknown): Record<string, unknown> {
+  if (!(error instanceof Error)) return { message: String(error) };
+  const cause = error.cause as { code?: unknown } | undefined;
+  return {
+    name: error.name,
+    message: error.name === "AbortError" ? "request timed out" : error.message.replace(/https:\/\/api\.telegram\.org\/bot[^/\s]+/gu, "https://api.telegram.org/bot[redacted]"),
+    causeCode: typeof cause?.code === "string" && /^[A-Z0-9_]+$/u.test(cause.code) ? cause.code : undefined
+  };
 }
