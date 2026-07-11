@@ -154,7 +154,7 @@ test("marketplace policy template preserves diagnostic placement flags", () => {
         variable.value?.startsWith("https://webhook.site/")
     )
   );
-  assert.equal(entry.artifact.cid, "ipfs://QmS85JpnFbyP3bSzCJr6QNFzXJt1bUZQ5aohyDbnVpxart");
+  assert.equal(entry.artifact.cid, "ipfs://QmWGGdtzq5RuVK71GptZmnsjLdzjBYKeMttdh3RTKR9eks");
   assert.equal(
     entry.policyTemplate.artifactAutomation.github.workflowRef,
     "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"
