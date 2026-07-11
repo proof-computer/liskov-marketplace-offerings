@@ -22,7 +22,7 @@
     "metadata": { "appType": "background-worker", "owner": "PROOF" },
     "runtime": {
       "runtime": "NodeJSWithBundle",
-      "durationMs": 900000,
+      "durationMs": 1800000,
       "replacementRunwayMs": 300000,
       "resources": { "memory": 512, "storage": 64, "networkRequests": 256 }
     },

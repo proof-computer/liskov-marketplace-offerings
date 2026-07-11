@@ -32,7 +32,7 @@
   "runtime": {
     "role": "uptime-prober",
     "runtime": "NodeJSWithBundle",
-    "durationMs": 900000,
+    "durationMs": 1800000,
     "resources": {
       "memory": 512,
       "storage": 64,

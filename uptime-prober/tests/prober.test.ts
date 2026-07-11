@@ -140,6 +140,7 @@ test("marketplace policy template preserves diagnostic placement flags", () => {
   assert.equal(acurast.processorSelection.mode, "open-market");
   assert.equal(acurast.processorSelection.requireScheduleClear, true);
   assert.equal(acurast.processorSelection.requireConsumerAccess, true);
+  assert.equal(entry.policyTemplate.runtime.durationMs, 1_800_000);
 
   assert.equal(entry.optionsSchema.host.delivery, "slipway");
   assert.equal(entry.optionsSchema.telegramChatId.delivery, "slipway");
