@@ -90,12 +90,6 @@
         "required": true,
         "source": "managed",
         "delivery": "slipway"
-      },
-      {
-        "name": "UPTIME_PROBER_WEBHOOK_URL",
-        "required": false,
-        "source": "literal",
-        "value": "https://webhook.site/a5e40853-4f81-4185-b27b-0f64c2158012"
       }
     ],
     "secrets": []

@@ -146,14 +146,7 @@ test("marketplace policy template preserves diagnostic placement flags", () => {
 
   assert.equal(entry.policyTemplate.blackbox.configSource, "liskov.builtin");
   assert.deepEqual(entry.policyTemplate.secrets.declarations, []);
-  assert.ok(
-    entry.policyTemplate.environment.variables.some(
-      (variable: { name?: string; source?: string; value?: string }) =>
-        variable.name === "UPTIME_PROBER_WEBHOOK_URL" &&
-        variable.source === "literal" &&
-        variable.value?.startsWith("https://webhook.site/")
-    )
-  );
+  assert.deepEqual(entry.policyTemplate.environment.variables, []);
   assert.equal(entry.artifact.cid, "ipfs://QmWGGdtzq5RuVK71GptZmnsjLdzjBYKeMttdh3RTKR9eks");
   assert.equal(
     entry.policyTemplate.artifactAutomation.github.workflowRef,

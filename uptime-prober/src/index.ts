@@ -2,20 +2,9 @@
 // See BKLG-20260624-002 + the catalog schema spec for the offering contract.
 
 import { recordEarlyRuntimeEvent, startUptimeProber, type ProberHandle } from "./runtime.js";
-import { emitWebhookEvent, flushWebhookEvents, webhookRunId } from "./webhook.js";
 
 let handle: ProberHandle | undefined;
 
-emitWebhookEvent("process-start", {
-  runId: webhookRunId(),
-  pid: process.pid,
-  nodeVersion: process.version,
-  platform: process.platform,
-  arch: process.arch,
-  hasFetch: typeof globalThis.fetch === "function",
-  hasHttpPost: typeof (globalThis as { httpPOST?: unknown }).httpPOST === "function",
-  hasStd: typeof (globalThis as { _STD_?: unknown })._STD_ === "object"
-});
 recordEarlyRuntimeEvent("process-start", {
   nodeVersion: process.version,
   platform: process.platform,
@@ -27,11 +16,11 @@ recordEarlyRuntimeEvent("process-start", {
 
 process.on("unhandledRejection", (reason) => {
   console.error("[uptime] unhandledRejection", reason);
-  emitWebhookEvent("unhandled-rejection", { reason: describeUnknown(reason) });
+  recordEarlyRuntimeEvent("unhandled-rejection", { reason: describeUnknown(reason) });
 });
 process.on("uncaughtException", (error) => {
   console.error("[uptime] uncaughtException", error);
-  emitWebhookEvent("uncaught-exception", { error: describeUnknown(error) });
+  recordEarlyRuntimeEvent("uncaught-exception", { error: describeUnknown(error) });
   process.exitCode = 1;
 });
 process.once("SIGINT", () => void shutdown("SIGINT"));
@@ -41,14 +30,11 @@ void main();
 
 async function main(): Promise<void> {
   try {
-    emitWebhookEvent("main-entered");
     recordEarlyRuntimeEvent("main-entered");
     handle = await startUptimeProber();
-    emitWebhookEvent("main-ready");
   } catch (error) {
     console.error("[uptime] failed to start", error);
-    emitWebhookEvent("main-failed", { error: describeUnknown(error) });
-    await flushWebhookEvents();
+    recordEarlyRuntimeEvent("main-failed", { error: describeUnknown(error) });
     process.exitCode = 1;
   }
 }
@@ -56,10 +42,9 @@ async function main(): Promise<void> {
 async function shutdown(signal: string): Promise<void> {
   console.log(`[uptime] ${signal} received, stopping`);
   try {
-    emitWebhookEvent("shutdown", { signal });
+    recordEarlyRuntimeEvent("shutdown", { signal });
     await handle?.stop();
   } finally {
-    await flushWebhookEvents();
     process.exit(0);
   }
 }

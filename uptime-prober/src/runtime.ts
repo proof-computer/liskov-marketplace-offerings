@@ -18,11 +18,11 @@ import type { Log } from "./cdp.js";
 import { probeHost } from "./probe.js";
 import { captureHostScreenshot } from "./screenshot.js";
 import { formatCaption, sendMessage, sendPhoto } from "./telegram.js";
-import { emitWebhookEvent } from "./webhook.js";
 import { startFixedCadenceScheduler, type TickContext } from "./scheduler.js";
 
 const COMPONENT = "uptime-prober";
 const earlyRuntimeEvents: Array<{ event: string; details?: Record<string, unknown> }> = [];
+let attachedRuntimeLog: Log | undefined;
 
 type BootstrapTrace = (phase: string, details?: Record<string, unknown>) => void;
 
@@ -39,7 +39,6 @@ export interface ProberHandle {
 
 export async function startUptimeProber(): Promise<ProberHandle> {
   recordEarlyRuntimeEvent("runtime-start-entered");
-  emitWebhookEvent("runtime-start-entered");
   const std = resolveRuntimeStd();
   const runtime = await bootstrapRuntime();
   const log = runtime.log;
@@ -47,7 +46,6 @@ export async function startUptimeProber(): Promise<ProberHandle> {
   const result = readConfig(runtime.get);
   if (!result.ok) {
     log("config.invalid", { issues: result.issues });
-    emitWebhookEvent("config-invalid", { issues: result.issues });
     throw new Error(`invalid config: ${result.issues.map((i) => `${i.field} ${i.message}`).join("; ")}`);
   }
   const config = result.config;
@@ -55,10 +53,6 @@ export async function startUptimeProber(): Promise<ProberHandle> {
 
   // Always run the spike once so prod logs carry the go/no-go verdict.
   const report = await probeCapabilities({ host: config.host, std, settleMs: config.settleMs, log });
-  emitWebhookEvent("capabilities-report", {
-    ...report,
-    host: config.host
-  });
   if (config.mode === "spike") {
     log("spike.done", { verdict: report.verdict, errors: report.errors });
     return { stop: async () => { await runtime.flush(); runtime.stop(); } };
@@ -96,12 +90,10 @@ async function runTick(runtime: ProberRuntime, config: ProberConfig, std: unknow
   const botToken = runtime.get(ENV.botToken);
   const probe = await probeHost(config.host);
   log("tick", { ...context, host: config.host, probeOk: probe.ok, status: probe.status, latencyMs: probe.latencyMs });
-  emitWebhookEvent("tick", { host: config.host, probeOk: probe.ok, status: probe.status, latencyMs: probe.latencyMs });
 
   if (!botToken) {
     // Lockbox secret not installed yet (background load) — try again next tick.
     log("tick.no-token", { env: ENV.botToken });
-    emitWebhookEvent("tick-no-token", { env: ENV.botToken });
     return;
   }
 
@@ -111,7 +103,6 @@ async function runTick(runtime: ProberRuntime, config: ProberConfig, std: unknow
     png = shot.png;
   } catch (error) {
     log("tick.screenshot-failed", { error: String(error) });
-    emitWebhookEvent("tick-screenshot-failed", { error: String(error) });
   }
 
   const caption = formatCaption(config.host, probe, Date.now());
@@ -124,17 +115,14 @@ async function runTick(runtime: ProberRuntime, config: ProberConfig, std: unknow
       log("tick.telegram-receipt", receipt as unknown as Record<string, unknown>);
     }
     log("tick.delivered", { withPhoto: Boolean(png), bytes: png?.length });
-    emitWebhookEvent("tick-delivered", { withPhoto: Boolean(png), bytes: png?.length });
   } catch (error) {
     log("tick.delivery-failed", { error: String(error) });
-    emitWebhookEvent("tick-delivery-failed", { error: String(error) });
   }
 }
 
 /** Bootstrap the SDK runtime; degrade to a console/process-env runtime if unavailable (local spike). */
 async function bootstrapRuntime(): Promise<ProberRuntime> {
   const trace: BootstrapTrace = (event, details) => {
-    emitWebhookEvent(event, details);
     recordEarlyRuntimeEvent(event, details);
   };
   const std = resolveRuntimeStd();
@@ -144,7 +132,7 @@ async function bootstrapRuntime(): Promise<ProberRuntime> {
     : baseFetchImpl;
   const identityProvider = traceBootstrapIdentity(createAcurastRuntimeAdapter({ std }), trace);
   try {
-    emitWebhookEvent("bootstrap-started", {
+    recordEarlyRuntimeEvent("bootstrap-started", {
       hasFetch: typeof fetchImpl === "function",
       hasStd: std !== undefined
     });
@@ -158,7 +146,7 @@ async function bootstrapRuntime(): Promise<ProberRuntime> {
       secrets: { mode: "background" },
       logging: { mode: "background" },
       diagnostics: (event) => {
-        emitWebhookEvent("runtime-diagnostic", {
+        recordEarlyRuntimeEvent("runtime-diagnostic", {
           phase: event.phase,
           stage: event.stage,
           status: event.status,
@@ -168,25 +156,25 @@ async function bootstrapRuntime(): Promise<ProberRuntime> {
         });
       }
     });
+    const log: Log = (event, details) => {
+      consoleLog(event, details);
+      void handle.log(`uptime.${event}`, details, { labels: { component: COMPONENT } }).catch(() => undefined);
+    };
+    attachedRuntimeLog = log;
     for (const entry of earlyRuntimeEvents.splice(0)) {
       await handle.log(`uptime.${entry.event}`, entry.details, { labels: { component: COMPONENT, phase: "pre-bootstrap" } });
     }
     await handle.flush();
-    const log: Log = (event, details) => {
-      consoleLog(event, details);
-      emitWebhookEvent(event, details);
-      void handle.log(`uptime.${event}`, details, { labels: { component: COMPONENT } }).catch(() => undefined);
-    };
-    emitWebhookEvent("bootstrap-succeeded");
+    log("bootstrap-succeeded");
     return { get: (name) => handle.env.get(name), log, flush: () => handle.flush(), stop: () => handle.stop() };
   } catch (error) {
+    attachedRuntimeLog = undefined;
     consoleLog("bootstrap.fallback", { error: String(error) });
-    emitWebhookEvent("bootstrap-fallback", { error: String(error) });
+    recordEarlyRuntimeEvent("bootstrap-fallback", { error: String(error) });
     return {
       get: (name) => process.env[name],
       log: (event, details) => {
         consoleLog(event, details);
-        emitWebhookEvent(event, details);
       },
       flush: async () => ({ ok: false, state: "degraded", flushed: 0, pending: 0, dropped: 0 }),
       stop: () => undefined
@@ -195,13 +183,17 @@ async function bootstrapRuntime(): Promise<ProberRuntime> {
 }
 
 export function recordEarlyRuntimeEvent(event: string, details?: Record<string, unknown>): void {
+  if (attachedRuntimeLog) {
+    attachedRuntimeLog(event, details);
+    return;
+  }
   if (earlyRuntimeEvents.length >= 200) earlyRuntimeEvents.shift();
   earlyRuntimeEvents.push({ event, details });
 }
 
 export function traceBootstrapFetch(
   fetchImpl: typeof fetch,
-  trace: BootstrapTrace = emitWebhookEvent
+  trace: BootstrapTrace = recordEarlyRuntimeEvent
 ): typeof fetch {
   return (async (input, init) => {
     const target = publicFetchTarget(input, init);
@@ -226,7 +218,7 @@ export function traceBootstrapFetch(
 
 export function traceBootstrapIdentity(
   identityProvider: RuntimeIdentityProvider,
-  trace: BootstrapTrace = emitWebhookEvent
+  trace: BootstrapTrace = recordEarlyRuntimeEvent
 ): RuntimeIdentityProvider {
   return {
     async resolveIdentity(options) {
