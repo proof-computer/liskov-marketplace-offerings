@@ -74,8 +74,7 @@
     }
   },
   "ingress": {
-    "mode": "none",
-    "childSessionDurationMs": 600000
+    "mode": "none"
   },
   "environment": {
     "variables": [

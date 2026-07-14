@@ -140,6 +140,9 @@ test("Telegram transport errors redact token URLs and preserve safe cause codes"
 test("marketplace policy template preserves diagnostic placement flags", () => {
   const entry = JSON.parse(readFileSync(new URL("../../proof/uptime-prober.json", import.meta.url), "utf8"));
   const acurast = entry.policyTemplate.acurast;
+  const sourcePolicy = JSON.parse(
+    readFileSync(new URL("../.liskov/uptime-prober.policy.json", import.meta.url), "utf8")
+  );
 
   assert.equal(acurast.verifiedOnly, false);
   assert.equal(acurast.managerId, "9470");
@@ -148,6 +151,11 @@ test("marketplace policy template preserves diagnostic placement flags", () => {
   assert.equal(acurast.processorSelection.requireScheduleClear, true);
   assert.equal(acurast.processorSelection.requireConsumerAccess, true);
   assert.equal(entry.policyTemplate.runtime.durationMs, 1_800_000);
+  assert.equal(entry.policyTemplate.ingress.mode, "none");
+  assert.equal("childSessionDurationMs" in entry.policyTemplate.ingress, false);
+  assert.equal(sourcePolicy.runtime.durationMs, 1_800_000);
+  assert.equal(sourcePolicy.ingress.mode, "none");
+  assert.equal("childSessionDurationMs" in sourcePolicy.ingress, false);
 
   assert.equal(entry.optionsSchema.host.delivery, "slipway");
   assert.equal(entry.optionsSchema.telegramChatId.delivery, "slipway");
