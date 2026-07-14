@@ -21,6 +21,12 @@ import { formatCaption, sendMessage, sendPhoto } from "./telegram.js";
 import { startFixedCadenceScheduler, type TickContext } from "./scheduler.js";
 
 const COMPONENT = "uptime-prober";
+const TRACED_BOOTSTRAP_PATHS = new Set([
+  "/api/jobs/runtime-bootstrap",
+  "/api/jobs/secret-bootstrap",
+  "/api/jobs/secret-requests",
+  "/api/jobs/runtime-env"
+]);
 const earlyRuntimeEvents: Array<{ event: string; details?: Record<string, unknown> }> = [];
 let attachedRuntimeLog: Log | undefined;
 
@@ -30,7 +36,14 @@ interface ProberRuntime {
   get(name: string): string | undefined;
   log: Log;
   flush(): Promise<unknown>;
-  stop(): void;
+  stop(): Promise<void>;
+}
+
+interface BootstrapRuntimeDependencies {
+  bootstrap?: typeof bootstrapSlipwayRuntime;
+  std?: ReturnType<typeof resolveRuntimeStd>;
+  fetchImpl?: typeof fetch;
+  identityProvider?: RuntimeIdentityProvider;
 }
 
 export interface ProberHandle {
@@ -55,7 +68,7 @@ export async function startUptimeProber(): Promise<ProberHandle> {
   const report = await probeCapabilities({ host: config.host, std, settleMs: config.settleMs, log });
   if (config.mode === "spike") {
     log("spike.done", { verdict: report.verdict, errors: report.errors });
-    return { stop: async () => { await runtime.flush(); runtime.stop(); } };
+    return { stop: async () => { await runtime.flush(); await runtime.stop(); } };
   }
   if (report.verdict !== "go") {
     log("degraded", { verdict: report.verdict, errors: report.errors });
@@ -81,7 +94,7 @@ export async function startUptimeProber(): Promise<ProberHandle> {
     stop: async () => {
       await scheduler.stop();
       await runtime.flush();
-      runtime.stop();
+      await runtime.stop();
     }
   };
 }
@@ -121,22 +134,24 @@ async function runTick(runtime: ProberRuntime, config: ProberConfig, std: unknow
 }
 
 /** Bootstrap the SDK runtime; degrade to a console/process-env runtime if unavailable (local spike). */
-async function bootstrapRuntime(): Promise<ProberRuntime> {
+export async function bootstrapRuntime(dependencies: BootstrapRuntimeDependencies = {}): Promise<ProberRuntime> {
   const trace: BootstrapTrace = (event, details) => {
     recordEarlyRuntimeEvent(event, details);
   };
-  const std = resolveRuntimeStd();
-  const baseFetchImpl = createAcurastHttpPostFetch() ?? (globalThis as { fetch?: typeof fetch }).fetch;
+  const tracing = createBootstrapTraceLifecycle(trace);
+  const std = dependencies.std ?? resolveRuntimeStd();
+  const baseFetchImpl = dependencies.fetchImpl ?? createAcurastHttpPostFetch() ?? (globalThis as { fetch?: typeof fetch }).fetch;
   const fetchImpl = typeof baseFetchImpl === "function"
-    ? traceBootstrapFetch(baseFetchImpl, trace)
+    ? tracing.fetch(baseFetchImpl)
     : baseFetchImpl;
-  const identityProvider = traceBootstrapIdentity(createAcurastRuntimeAdapter({ std }), trace);
+  const identityProvider = tracing.identity(dependencies.identityProvider ?? createAcurastRuntimeAdapter({ std }));
+  let handle: Awaited<ReturnType<typeof bootstrapSlipwayRuntime>>;
   try {
     recordEarlyRuntimeEvent("bootstrap-started", {
       hasFetch: typeof fetchImpl === "function",
       hasStd: std !== undefined
     });
-    const handle = await bootstrapSlipwayRuntime({
+    handle = await (dependencies.bootstrap ?? bootstrapSlipwayRuntime)({
       appId: COMPONENT,
       component: COMPONENT,
       std,
@@ -146,28 +161,23 @@ async function bootstrapRuntime(): Promise<ProberRuntime> {
       secrets: { mode: "background" },
       logging: { mode: "background" },
       diagnostics: (event) => {
-        recordEarlyRuntimeEvent("runtime-diagnostic", {
+        const diagnostic = {
           phase: event.phase,
           stage: event.stage,
           status: event.status,
           ok: event.ok,
           code: event.code,
-          message: event.message
-        });
+          message: safeDiagnosticMessage(event.message)
+        };
+        if (event.phase === "slipway_logging") {
+          consoleLog("runtime-diagnostic", diagnostic);
+          return;
+        }
+        recordEarlyRuntimeEvent("runtime-diagnostic", diagnostic);
       }
     });
-    const log: Log = (event, details) => {
-      consoleLog(event, details);
-      void handle.log(`uptime.${event}`, details, { labels: { component: COMPONENT } }).catch(() => undefined);
-    };
-    attachedRuntimeLog = log;
-    for (const entry of earlyRuntimeEvents.splice(0)) {
-      await handle.log(`uptime.${entry.event}`, entry.details, { labels: { component: COMPONENT, phase: "pre-bootstrap" } });
-    }
-    await handle.flush();
-    log("bootstrap-succeeded");
-    return { get: (name) => handle.env.get(name), log, flush: () => handle.flush(), stop: () => handle.stop() };
   } catch (error) {
+    tracing.close();
     attachedRuntimeLog = undefined;
     consoleLog("bootstrap.fallback", { error: String(error) });
     recordEarlyRuntimeEvent("bootstrap-fallback", { error: String(error) });
@@ -177,9 +187,51 @@ async function bootstrapRuntime(): Promise<ProberRuntime> {
         consoleLog(event, details);
       },
       flush: async () => ({ ok: false, state: "degraded", flushed: 0, pending: 0, dropped: 0 }),
-      stop: () => undefined
+      stop: async () => undefined
     };
   }
+  tracing.close();
+
+  while (earlyRuntimeEvents.length > 0) {
+    const entry = earlyRuntimeEvents.shift()!;
+    try {
+      await handle.log(`uptime.${entry.event}`, entry.details, { labels: { component: COMPONENT, phase: "pre-bootstrap" } });
+    } catch (error) {
+      consoleLog("bootstrap.logging-handoff-failed", { event: entry.event, error: safeRuntimeError(error) });
+    }
+  }
+
+  let applicationLogQueue = Promise.resolve();
+  const awaitApplicationLogs = async (): Promise<void> => {
+    await applicationLogQueue;
+  };
+  const log: Log = (event, details) => {
+    consoleLog(event, details);
+    const write = () => handle.log(`uptime.${event}`, details, { labels: { component: COMPONENT } });
+    applicationLogQueue = applicationLogQueue.then(write, write).catch((error) => {
+      consoleLog("logging.write-failed", { event, error: safeRuntimeError(error) });
+    });
+  };
+  const runtime: ProberRuntime = {
+    get: (name) => handle.env.get(name),
+    log,
+    async flush() {
+      await awaitApplicationLogs();
+      return handle.flush();
+    },
+    async stop() {
+      await awaitApplicationLogs();
+      handle.stop();
+    }
+  };
+  attachedRuntimeLog = log;
+  log("bootstrap-succeeded");
+  try {
+    await runtime.flush();
+  } catch (error) {
+    consoleLog("bootstrap.logging-handoff-failed", { event: "bootstrap-succeeded", error: safeRuntimeError(error) });
+  }
+  return runtime;
 }
 
 export function recordEarlyRuntimeEvent(event: string, details?: Record<string, unknown>): void {
@@ -191,12 +243,20 @@ export function recordEarlyRuntimeEvent(event: string, details?: Record<string, 
   earlyRuntimeEvents.push({ event, details });
 }
 
+/** Internal test seam; uptime-prober is bundled as an app and exposes no package API. */
+export function resetRuntimeStateForTest(): void {
+  earlyRuntimeEvents.length = 0;
+  attachedRuntimeLog = undefined;
+}
+
 export function traceBootstrapFetch(
   fetchImpl: typeof fetch,
-  trace: BootstrapTrace = recordEarlyRuntimeEvent
+  trace: BootstrapTrace = recordEarlyRuntimeEvent,
+  enabled: () => boolean = () => true
 ): typeof fetch {
   return (async (input, init) => {
-    const target = publicFetchTarget(input, init);
+    const target = enabled() ? bootstrapFetchTarget(input, init) : undefined;
+    if (!target) return fetchImpl(input, init);
     trace("bootstrap-fetch-started", target);
     try {
       const response = await fetchImpl(input, init);
@@ -218,10 +278,12 @@ export function traceBootstrapFetch(
 
 export function traceBootstrapIdentity(
   identityProvider: RuntimeIdentityProvider,
-  trace: BootstrapTrace = recordEarlyRuntimeEvent
+  trace: BootstrapTrace = recordEarlyRuntimeEvent,
+  enabled: () => boolean = () => true
 ): RuntimeIdentityProvider {
   return {
     async resolveIdentity(options) {
+      if (!enabled()) return identityProvider.resolveIdentity(options);
       trace("bootstrap-identity-started", {
         requireEncryptionKey: options?.requireEncryptionKey === true
       });
@@ -243,6 +305,7 @@ export function traceBootstrapIdentity(
       }
     },
     async sign(message) {
+      if (!enabled()) return identityProvider.sign(message);
       trace("bootstrap-sign-started", { messageBytes: message.byteLength });
       try {
         const signature = await identityProvider.sign(message);
@@ -254,6 +317,7 @@ export function traceBootstrapIdentity(
       }
     },
     async decryptGrantPayload(encrypted) {
+      if (!enabled()) return identityProvider.decryptGrantPayload(encrypted);
       trace("bootstrap-decrypt-started", {
         ciphertextBytes: Math.floor(encrypted.ciphertextHex.length / 2)
       });
@@ -269,6 +333,31 @@ export function traceBootstrapIdentity(
   };
 }
 
+export function createBootstrapTraceLifecycle(trace: BootstrapTrace = recordEarlyRuntimeEvent): {
+  fetch(fetchImpl: typeof fetch): typeof fetch;
+  identity(identityProvider: RuntimeIdentityProvider): RuntimeIdentityProvider;
+  close(): void;
+} {
+  let active = true;
+  const enabled = () => active;
+  return {
+    fetch: (fetchImpl) => traceBootstrapFetch(fetchImpl, trace, enabled),
+    identity: (identityProvider) => traceBootstrapIdentity(identityProvider, trace, enabled),
+    close: () => { active = false; }
+  };
+}
+
+function bootstrapFetchTarget(
+  input: Parameters<typeof fetch>[0],
+  init?: Parameters<typeof fetch>[1]
+): Record<string, unknown> | undefined {
+  const target = publicFetchTarget(input, init);
+  if (target.method !== "POST" || typeof target.urlPath !== "string" || !TRACED_BOOTSTRAP_PATHS.has(target.urlPath)) {
+    return undefined;
+  }
+  return target;
+}
+
 function publicFetchTarget(
   input: Parameters<typeof fetch>[0],
   init?: Parameters<typeof fetch>[1]
@@ -281,12 +370,20 @@ function publicFetchTarget(
     url = undefined;
   }
   return {
-    method: init?.method ?? "GET",
+    method: String(init?.method ?? (typeof Request !== "undefined" && input instanceof Request ? input.method : "GET")).toUpperCase(),
     urlHost: url?.hostname,
     urlPath: url?.pathname,
     urlProtocol: url?.protocol.replace(/:$/u, ""),
     hasBody: init?.body !== undefined
   };
+}
+
+function safeDiagnosticMessage(message: unknown): string | undefined {
+  if (typeof message !== "string" || message.length === 0) return undefined;
+  return message
+    .replace(/https?:\/\/[^\s]+/giu, "[redacted-url]")
+    .replace(/bot[0-9]+:[A-Za-z0-9_-]+/giu, "bot[redacted]")
+    .slice(0, 300);
 }
 
 function errorSummary(error: unknown): Record<string, unknown> {
