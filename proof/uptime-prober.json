@@ -13,8 +13,8 @@
     "path": "uptime-prober/.liskov/uptime-prober.policy.json"
   },
   "artifact": {
-    "cid": "ipfs://QmfMcch55ovuGaDuqQkTeGXBe16ZQnxTo45AUNESTmwLyk",
-    "digest": "sha256:83eccb6181570b17695696beb231798c4be224c7a583e0aca2700f10d4044bf1",
+    "cid": "ipfs://QmcKRYrZg78W6dgiwgzFDKSfkZae82ZZrDhyMfsErWRAw3",
+    "digest": "sha256:4bd3260d25b9632a755895c3561601ae43dafd75830a7ef4e37222da4cc903c8",
     "requiredEncryptionMode": "aes-256-gcm"
   },
   "policyTemplate": {
