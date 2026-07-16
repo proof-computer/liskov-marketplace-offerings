@@ -178,6 +178,18 @@ test("artifact workflow ships the stage0 wrapper and app bundle", () => {
   assert.match(workflow, /extra-files:\s+app\.cjs/u);
 });
 
+test("policy workflow publishes through the reusable GitHub-OIDC route", () => {
+  const workflow = readFileSync(
+    new URL("../../.github/workflows/uptime-prober-policy.yml", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(workflow, /permissions:\s*\n\s+id-token:\s+write/u);
+  assert.match(workflow, /liskov-github-actions\/\.github\/workflows\/policy-sync\.yml@main/u);
+  assert.match(workflow, /application-id:\s+uptime-prober/u);
+  assert.match(workflow, /policy-path:\s+uptime-prober\/\.liskov\/uptime-prober\.policy\.json/u);
+});
+
 test("bootstrap tracing reports safe identity and HTTP milestones", async () => {
   const events: Array<{ phase: string; details?: Record<string, unknown> }> = [];
   const trace = (phase: string, details?: Record<string, unknown>) => events.push({ phase, details });

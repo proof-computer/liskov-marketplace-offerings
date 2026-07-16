@@ -1,0 +1,24 @@
+name: uptime-prober policy sync
+
+# Policy changes on main import and publish through Liskov's GitHub-OIDC route.
+# The artifact workflow remains responsible for building, pinning, and attesting
+# the runtime bundle; this workflow advances the authored policy version.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "uptime-prober/.liskov/**"
+      - ".github/workflows/uptime-prober-policy.yml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  policy:
+    uses: proof-computer/liskov-github-actions/.github/workflows/policy-sync.yml@main
+    with:
+      application-id: uptime-prober
+      policy-path: uptime-prober/.liskov/uptime-prober.policy.json
