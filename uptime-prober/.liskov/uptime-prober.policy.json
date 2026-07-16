@@ -1,5 +1,6 @@
 {
   "domain": "proof.slipway.application-policy.v3",
+  "applicationUid": "app-e9f8c6288ebe9bac",
   "applicationId": "uptime-prober",
   "displayName": "Uptime Prober",
   "replicas": 1,
