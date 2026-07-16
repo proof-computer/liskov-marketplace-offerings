@@ -15,7 +15,7 @@
     "spike:local": "UPTIME_PROBER_MODE=spike tsx src/index.ts"
   },
   "dependencies": {
-    "@proof-computer/liskov-runtime": "github:proof-computer/liskov-runtime-js#v0.3.13"
+    "@proof-computer/liskov-runtime": "github:proof-computer/liskov-runtime-js#v0.3.14"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
