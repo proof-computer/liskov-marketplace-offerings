@@ -18,8 +18,8 @@
   "artifact": {
     "mode": "manual-cid",
     "status": "ready",
-    "cid": "ipfs://QmY7g8AHkfbbvEdkWqDQFhrcHX4znKz8fpaXsemGMEkusd",
-    "digest": "sha256:3ce58a24caebe51777d6d7e00c89a686361229cd6b6cdb4181cb437eea3e853b"
+    "cid": "ipfs://QmaGJ17AovLHPK3M9jrnqH85Eq2fjYjTCoxSw5zsX7UArg",
+    "digest": "sha256:48375d3fd5af8bdf1b641a0d9e3cca38e565455579c6ba42cea98c3ab50cea55"
   },
   "artifactAutomation": {
     "github": {
