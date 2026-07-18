@@ -163,8 +163,8 @@ test("marketplace policy template preserves diagnostic placement flags", () => {
   assert.equal(entry.policyTemplate.blackbox.configSource, "liskov.builtin");
   assert.deepEqual(entry.policyTemplate.secrets.declarations, []);
   assert.deepEqual(entry.policyTemplate.environment.variables, []);
-  assert.equal(entry.artifact.cid, "ipfs://QmaGJ17AovLHPK3M9jrnqH85Eq2fjYjTCoxSw5zsX7UArg");
-  assert.equal(entry.artifact.digest, "sha256:48375d3fd5af8bdf1b641a0d9e3cca38e565455579c6ba42cea98c3ab50cea55");
+  assert.equal(entry.artifact.cid, "ipfs://QmQCpRJ593xRyKko9smvtFixzfAGwDuG6gXBemRtUeSe4U");
+  assert.equal(entry.artifact.digest, "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57");
   assert.equal(
     entry.policyTemplate.artifactAutomation.github.workflowRef,
     "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"
