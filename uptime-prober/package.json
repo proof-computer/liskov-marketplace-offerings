@@ -11,11 +11,12 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
+    "test:bundle": "tsx scripts/bundled-failure-fixture.ts",
     "build": "tsx scripts/build.ts",
-    "spike:local": "UPTIME_PROBER_MODE=spike tsx src/index.ts"
+    "spike:local": "UPTIME_PROBER_MODE=spike tsx src/local.ts"
   },
   "dependencies": {
-    "@proof-computer/liskov-runtime": "github:proof-computer/liskov-runtime-js#v0.3.21"
+    "@proof-computer/liskov-runtime": "github:proof-computer/liskov-runtime-js#v0.3.22"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

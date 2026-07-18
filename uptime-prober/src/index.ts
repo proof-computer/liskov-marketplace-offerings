@@ -1,6 +1,7 @@
 // Entry point for the uptime-prober Acurast app.
 // See BKLG-20260624-002 + the catalog schema spec for the offering contract.
 
+import { installLiskovRuntimeProcessFailureHandlers } from "@proof-computer/liskov-runtime";
 import { recordEarlyRuntimeEvent, startUptimeProber, type ProberHandle } from "./runtime.js";
 
 let handle: ProberHandle | undefined;
@@ -14,30 +15,24 @@ recordEarlyRuntimeEvent("process-start", {
   hasStd: typeof (globalThis as { _STD_?: unknown })._STD_ === "object"
 });
 
-process.on("unhandledRejection", (reason) => {
-  console.error("[uptime] unhandledRejection", reason);
-  recordEarlyRuntimeEvent("unhandled-rejection", { reason: describeUnknown(reason) });
-});
-process.on("uncaughtException", (error) => {
-  console.error("[uptime] uncaughtException", error);
-  recordEarlyRuntimeEvent("uncaught-exception", { error: describeUnknown(error) });
-  process.exitCode = 1;
+const processFailures = installLiskovRuntimeProcessFailureHandlers({
+  component: "uptime-prober",
+  unhandledRejection: "exit",
+  onStageZeroError(kind, error) {
+    recordEarlyRuntimeEvent("process-failure-before-runtime", { kind, error: describeUnknown(error) });
+  }
 });
 process.once("SIGINT", () => void shutdown("SIGINT"));
 process.once("SIGTERM", () => void shutdown("SIGTERM"));
 
-void main();
-
-async function main(): Promise<void> {
-  try {
-    recordEarlyRuntimeEvent("main-entered");
-    handle = await startUptimeProber();
-  } catch (error) {
-    console.error("[uptime] failed to start", error);
-    recordEarlyRuntimeEvent("main-failed", { error: describeUnknown(error) });
-    process.exitCode = 1;
-  }
-}
+void processFailures.runMain(async () => {
+  recordEarlyRuntimeEvent("main-entered");
+  handle = await startUptimeProber({
+    onDiagnostics(diagnostics) {
+      processFailures.attach(diagnostics);
+    }
+  });
+});
 
 async function shutdown(signal: string): Promise<void> {
   console.log(`[uptime] ${signal} received, stopping`);

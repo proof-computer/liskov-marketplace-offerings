@@ -9,6 +9,7 @@ import {
   createAcurastHttpPostFetch,
   createAcurastRuntimeAdapter,
   resolveRuntimeStd,
+  type LiskovRuntimeDiagnostics,
   type RuntimeIdentityProvider
 } from "@proof-computer/liskov-runtime";
 
@@ -32,28 +33,34 @@ let attachedRuntimeLog: Log | undefined;
 
 type BootstrapTrace = (phase: string, details?: Record<string, unknown>) => void;
 
-interface ProberRuntime {
+export interface ProberRuntime {
   get(name: string): string | undefined;
   log: Log;
   flush(): Promise<unknown>;
   stop(): Promise<void>;
 }
 
-interface BootstrapRuntimeDependencies {
+export interface BootstrapRuntimeDependencies {
   bootstrap?: typeof bootstrapSlipwayRuntime;
   std?: ReturnType<typeof resolveRuntimeStd>;
   fetchImpl?: typeof fetch;
   identityProvider?: RuntimeIdentityProvider;
+  onDiagnostics?: (diagnostics: LiskovRuntimeDiagnostics) => void;
+}
+
+export interface StartUptimeProberOptions {
+  runtimeBootstrap?: () => Promise<ProberRuntime>;
+  onDiagnostics?: (diagnostics: LiskovRuntimeDiagnostics) => void;
 }
 
 export interface ProberHandle {
   stop(): Promise<void>;
 }
 
-export async function startUptimeProber(): Promise<ProberHandle> {
+export async function startUptimeProber(options: StartUptimeProberOptions = {}): Promise<ProberHandle> {
   recordEarlyRuntimeEvent("runtime-start-entered");
   const std = resolveRuntimeStd();
-  const runtime = await bootstrapRuntime();
+  const runtime = await (options.runtimeBootstrap?.() ?? bootstrapRuntime({ onDiagnostics: options.onDiagnostics }));
   const log = runtime.log;
 
   const result = readConfig(runtime.get);
@@ -133,7 +140,7 @@ async function runTick(runtime: ProberRuntime, config: ProberConfig, std: unknow
   }
 }
 
-/** Bootstrap the SDK runtime; degrade to a console/process-env runtime if unavailable (local spike). */
+/** Bootstrap the production SDK runtime. Any failure is terminal and propagates. */
 export async function bootstrapRuntime(dependencies: BootstrapRuntimeDependencies = {}): Promise<ProberRuntime> {
   const trace: BootstrapTrace = (event, details) => {
     recordEarlyRuntimeEvent(event, details);
@@ -179,17 +186,11 @@ export async function bootstrapRuntime(dependencies: BootstrapRuntimeDependencie
   } catch (error) {
     tracing.close();
     attachedRuntimeLog = undefined;
-    consoleLog("bootstrap.fallback", { error: String(error) });
-    recordEarlyRuntimeEvent("bootstrap-fallback", { error: String(error) });
-    return {
-      get: (name) => process.env[name],
-      log: (event, details) => {
-        consoleLog(event, details);
-      },
-      flush: async () => ({ ok: false, state: "degraded", flushed: 0, pending: 0, dropped: 0 }),
-      stop: async () => undefined
-    };
+    consoleLog("bootstrap.failed", { error: String(error) });
+    recordEarlyRuntimeEvent("bootstrap-failed", { error: String(error) });
+    throw error;
   }
+  dependencies.onDiagnostics?.(handle.diagnostics);
   tracing.close();
 
   while (earlyRuntimeEvents.length > 0) {

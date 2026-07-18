@@ -336,6 +336,45 @@ test("logging-origin diagnostics stay console-only while other diagnostics enter
   assert.doesNotMatch(consoleLines.join("\n"), /token-secret/u);
 });
 
+test("production bootstrap fails closed and never selects ambient process env", async (t) => {
+  resetRuntimeStateForTest();
+  t.after(resetRuntimeStateForTest);
+  process.env.SOURCE = "ambient-must-not-win";
+  t.after(() => { delete process.env.SOURCE; });
+  const original = new Error("signed bootstrap rejected");
+  await assert.rejects(
+    bootstrapRuntime({
+      bootstrap: (async () => { throw original; }) as never,
+      fetchImpl: async () => Response.json({ ok: true }),
+      identityProvider: fakeIdentity()
+    }),
+    (error) => error === original
+  );
+});
+
+test("attaches diagnostics immediately after SDK bootstrap before logging handoff", async (t) => {
+  resetRuntimeStateForTest();
+  t.after(resetRuntimeStateForTest);
+  recordEarlyRuntimeEvent("before-bootstrap");
+  const order: string[] = [];
+  const diagnostics = { report: async () => undefined, fatal: async () => undefined };
+  const handle = fakeRuntimeHandle({
+    async log(event) { order.push(event); }
+  }) as unknown as { diagnostics: typeof diagnostics };
+  handle.diagnostics = diagnostics;
+  await bootstrapRuntime({
+    bootstrap: (async () => handle) as never,
+    fetchImpl: async () => Response.json({ ok: true }),
+    identityProvider: fakeIdentity(),
+    onDiagnostics(value) {
+      assert.equal(value, diagnostics);
+      order.push("diagnostics-attached");
+    }
+  });
+  assert.equal(order[0], "diagnostics-attached");
+  assert.ok(order.includes("uptime.before-bootstrap"));
+});
+
 test("bootstrap drains early events sequentially and flushes bootstrap-succeeded before returning", async (t) => {
   resetRuntimeStateForTest();
   t.after(resetRuntimeStateForTest);
