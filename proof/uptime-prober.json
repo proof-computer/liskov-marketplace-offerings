@@ -18,52 +18,102 @@
     "requiredEncryptionMode": "aes-256-gcm"
   },
   "policyTemplate": {
-    "domain": "proof.slipway.application-policy.v3",
-    "metadata": { "appType": "background-worker", "owner": "PROOF" },
-    "runtime": {
-      "runtime": "NodeJSWithBundle",
-      "durationMs": 1800000,
-      "replacementRunwayMs": 300000,
-      "resources": { "memory": 512, "storage": 64, "networkRequests": 256 }
+    "schema": "proof.liskov.application-policy",
+    "schemaVersion": 4,
+    "applicationId": "uptime-prober",
+    "metadata": {
+      "appType": "background-worker",
+      "labels": ["uptime", "monitoring", "telegram"]
     },
-    "blackbox": {
-      "enabled": true,
-      "baseUrl": "https://logging.liskov.proof.computer",
-      "configSource": "liskov.builtin",
-      "envName": "BLACKBOX_LOG_CONFIG",
-      "sinkName": "uptime-prober",
-      "spoolDir": "spool/blackbox",
-      "context": {}
+    "artifact": {
+      "kind": "ipfs",
+      "cid": "ipfs://QmQCpRJ593xRyKko9smvtFixzfAGwDuG6gXBemRtUeSe4U",
+      "digest": "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57",
+      "encryption": {
+        "mode": "aes256_gcm"
+      }
     },
-    "artifactAutomation": {
+    "build": {
       "github": {
-        "autoPublish": true,
         "repository": "proof-computer/liskov-marketplace-offerings",
-        "branch": "main",
+        "allowedRefs": ["refs/heads/main"],
         "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"
       }
     },
-    "acurast": {
-      "verifiedOnly": false,
-      "assignmentStrategy": "single",
-      "managerId": "9470",
-      "processorSelection": {
-        "mode": "open-market",
-        "requireScheduleClear": true,
-        "requireConsumerAccess": true,
-        "candidateLimit": 16
+    "runtime": {
+      "engine": "nodejs",
+      "resources": {
+        "memoryMiB": 512,
+        "storageMiB": 64,
+        "networkRequestQuota": 256
       },
-      "maxStartDelayMs": 300000,
-      "startDelayMs": 300000,
-      "quote": { "required": false },
-      "budgetCaps": { "maxRewardPerLaunch": 40000000000, "maxNativeFeePerLaunch": 10000000000 }
+      "bootstrap": {
+        "trustProfile": "proof.liskov.attested-runtime.v1",
+        "signedDiagnosticsRequired": true,
+        "identityBoundSecretsRequired": true
+      }
     },
-    "secrets": { "declarations": [] },
-    "environment": {
+    "deployment": {
+      "parallelism": 1,
+      "schedule": {
+        "durationMs": 1800000,
+        "startDelayMs": 300000,
+        "maxStartDelayMs": 300000
+      },
+      "placement": {
+        "requirements": {
+          "trustProfile": "proof.liskov.attested-runtime.v1"
+        },
+        "processorSelection": {
+          "mode": "open_market",
+          "requireScheduleClear": true,
+          "requireConsumerAccess": true,
+          "candidateLimit": 16
+        }
+      },
+      "lifecycle": {
+        "renewal": {
+          "mode": "before_scheduled_end",
+          "leadTime": {
+            "mode": "fixed",
+            "durationMs": 300000
+          }
+        },
+        "update": {
+          "timing": "next_scheduled_renewal",
+          "existingJobs": {
+            "mode": "run_until_scheduled_end"
+          }
+        },
+        "recovery": {
+          "launch": {
+            "maxRetries": 5
+          },
+          "runtimeFailure": {
+            "mode": "wait_until_scheduled_end"
+          }
+        }
+      },
+      "spend": {
+        "maxRewardPlanckPerJob": "40000000000",
+        "maxNativeFeePlanckPerJob": "10000000000"
+      }
+    },
+    "ingress": {},
+    "observability": {
+      "logs": {
+        "enabled": true,
+        "sinkName": "uptime-prober",
+        "context": {}
+      },
+      "runtimeDiagnostics": {
+        "signed": true
+      }
+    },
+    "configuration": {
       "variables": [],
       "secrets": []
-    },
-    "ingress": { "mode": "none" }
+    }
   },
   "optionsSchema": {
     "host": {
