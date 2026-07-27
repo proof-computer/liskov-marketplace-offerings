@@ -1,105 +1,121 @@
 {
-  "domain": "proof.slipway.application-policy.v3",
+  "schema": "proof.liskov.application-manifest",
+  "schemaVersion": 4,
   "applicationId": "uptime-prober",
-  "displayName": "Uptime Prober",
-  "replicas": 1,
   "metadata": {
-    "displayName": "Uptime Prober",
     "appType": "background-worker",
     "labels": ["uptime", "monitoring", "telegram", "webview"],
-    "owner": "PROOF",
-    "revision": 1
+    "description": "Uptime Prober"
   },
-  "source": {
-    "provider": "github",
-    "repository": "proof-computer/liskov-marketplace-offerings",
-    "path": "uptime-prober/.liskov/uptime-prober.policy.json"
-  },
-  "artifact": {
-    "mode": "manual-cid",
-    "status": "ready",
-    "cid": "ipfs://QmQCpRJ593xRyKko9smvtFixzfAGwDuG6gXBemRtUeSe4U",
-    "digest": "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57"
-  },
-  "artifactAutomation": {
-    "github": {
-      "autoPublish": false,
+  "release": {
+    "mode": "build",
+    "artifact": {
+      "kind": "ipfs_bundle",
+      "encryption": {
+        "mode": "aes256_gcm"
+      }
+    },
+    "builder": {
+      "kind": "github",
       "repository": "proof-computer/liskov-marketplace-offerings",
-      "branch": "main",
-      "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"
+      "allowedRefs": ["refs/heads/main"],
+      "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main",
+      "manifestPath": "uptime-prober/.liskov/uptime-prober.policy.json"
     }
   },
   "runtime": {
+    "engine": "nodejs",
     "role": "uptime-prober",
-    "runtime": "NodeJSWithBundle",
-    "durationMs": 1800000,
     "resources": {
-      "memory": 512,
-      "storage": 64,
-      "networkRequests": 256
+      "memoryMiB": 512,
+      "storageMiB": 64,
+      "networkRequestQuota": 256
     },
     "requiredModules": [],
-    "replacementRunwayMs": 300000,
-    "desiredCount": 1,
-    "keyVersion": 1
-  },
-  "blackbox": {
-    "enabled": true,
-    "baseUrl": "https://logging.liskov.proof.computer",
-    "configSource": "liskov.builtin",
-    "envName": "BLACKBOX_LOG_CONFIG",
-    "sinkName": "uptime-prober",
-    "spoolDir": "spool/blackbox",
-    "context": {}
-  },
-  "acurast": {
-    "pinnedProcessors": [],
-    "verifiedOnly": false,
-    "assignmentStrategy": "single",
-    "managerId": "9470",
-    "processorSelection": {
-      "mode": "open-market",
-      "requireScheduleClear": true,
-      "requireConsumerAccess": true,
-      "candidateLimit": 16
-    },
-    "maxStartDelayMs": 300000,
-    "startDelayMs": 300000,
-    "budgetCaps": {
-      "maxRewardPerLaunch": 40000000000,
-      "maxNativeFeePerLaunch": 10000000000
-    },
-    "quote": {
-      "required": false
+    "bootstrap": {
+      "trustProfile": "proof.liskov.attested-runtime.v1",
+      "signedDiagnosticsRequired": true,
+      "identityBoundSecretsRequired": true
     }
   },
-  "ingress": {
-    "mode": "none"
+  "deployment": {
+    "parallelism": 1,
+    "schedule": {
+      "durationMs": 1800000,
+      "startDelayMs": 300000,
+      "maxStartDelayMs": 300000
+    },
+    "placement": {
+      "requirements": {
+        "trustProfile": "proof.liskov.attested-runtime.v1"
+      },
+      "processorSelection": {
+        "mode": "open_market",
+        "requireScheduleClear": true,
+        "requireConsumerAccess": true,
+        "candidateLimit": 16
+      }
+    },
+    "lifecycle": {
+      "renewal": {
+        "mode": "before_scheduled_end",
+        "leadTime": {
+          "mode": "fixed",
+          "durationMs": 300000
+        }
+      },
+      "update": {
+        "timing": "next_scheduled_renewal",
+        "existingJobs": {
+          "mode": "run_until_scheduled_end"
+        }
+      },
+      "recovery": {
+        "launch": {
+          "maxRetries": 5
+        },
+        "runtimeFailure": {
+          "mode": "wait_until_scheduled_end"
+        }
+      }
+    },
+    "spend": {
+      "maxRewardPlanckPerJob": "40000000000",
+      "maxNativeFeePlanckPerJob": "10000000000"
+    }
   },
-  "environment": {
+  "ingress": {},
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "sinkName": "uptime-prober",
+      "context": {}
+    },
+    "runtimeDiagnostics": {
+      "signed": true
+    }
+  },
+  "configuration": {
     "variables": [
       {
         "name": "UPTIME_PROBER_HOST",
         "required": true,
-        "source": "managed",
-        "delivery": "slipway"
+        "managed": true
       },
       {
         "name": "UPTIME_PROBER_TG_CHAT_ID",
         "required": true,
-        "source": "managed",
-        "delivery": "slipway"
+        "managed": true
       }
     ],
-    "secrets": []
-  },
-  "secrets": {
-    "declarations": [
+    "secrets": [
       {
         "secretId": "uptime-prober-tg-bot-token",
         "required": true,
-        "target": "env",
-        "name": "UPTIME_PROBER_TG_BOT_TOKEN",
+        "destination": {
+          "kind": "env",
+          "name": "UPTIME_PROBER_TG_BOT_TOKEN"
+        },
         "bundleId": "uptime-prober-tg"
       }
     ]

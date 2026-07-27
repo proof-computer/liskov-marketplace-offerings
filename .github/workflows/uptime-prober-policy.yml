@@ -1,8 +1,8 @@
-name: uptime-prober policy sync
+name: uptime-prober manifest import
 
-# Policy changes on main import and publish through Liskov's GitHub-OIDC route.
+# Manifest changes on main import a draft through Liskov's GitHub-OIDC route.
 # The artifact workflow remains responsible for building, pinning, and attesting
-# the runtime bundle; this workflow advances the authored policy version.
+# the runtime bundle; this workflow advances the authored manifest.
 
 on:
   push:
@@ -17,8 +17,8 @@ permissions:
   contents: read
 
 jobs:
-  policy:
+  manifest:
     uses: proof-computer/liskov-github-actions/.github/workflows/policy-sync.yml@main
     with:
       application-id: uptime-prober
-      policy-path: uptime-prober/.liskov/uptime-prober.policy.json
+      manifest-path: uptime-prober/.liskov/uptime-prober.policy.json

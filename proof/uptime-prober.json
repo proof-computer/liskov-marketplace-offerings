@@ -18,26 +18,22 @@
     "requiredEncryptionMode": "aes-256-gcm"
   },
   "policyTemplate": {
-    "schema": "proof.liskov.application-policy",
+    "schema": "proof.liskov.application-manifest",
     "schemaVersion": 4,
     "applicationId": "uptime-prober",
     "metadata": {
       "appType": "background-worker",
       "labels": ["uptime", "monitoring", "telegram"]
     },
-    "artifact": {
-      "kind": "ipfs",
-      "cid": "ipfs://QmQCpRJ593xRyKko9smvtFixzfAGwDuG6gXBemRtUeSe4U",
-      "digest": "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57",
-      "encryption": {
-        "mode": "aes256_gcm"
-      }
-    },
-    "build": {
-      "github": {
-        "repository": "proof-computer/liskov-marketplace-offerings",
-        "allowedRefs": ["refs/heads/main"],
-        "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"
+    "release": {
+      "mode": "pinned",
+      "artifact": {
+        "kind": "ipfs_bundle",
+        "cid": "ipfs://QmQCpRJ593xRyKko9smvtFixzfAGwDuG6gXBemRtUeSe4U",
+        "digest": "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57",
+        "encryption": {
+          "mode": "aes256_gcm"
+        }
       }
     },
     "runtime": {

@@ -137,38 +137,44 @@ test("Telegram transport errors redact token URLs and preserve safe cause codes"
   assert.match(summary, /ENOTFOUND/u);
 });
 
-test("marketplace policy template preserves diagnostic placement flags", () => {
+test("marketplace template pins its release while the repository manifest retains build authority", () => {
   const entry = JSON.parse(readFileSync(new URL("../../proof/uptime-prober.json", import.meta.url), "utf8"));
-  const acurast = entry.policyTemplate.acurast;
-  const sourcePolicy = JSON.parse(
+  const templateSelection = entry.policyTemplate.deployment.placement.processorSelection;
+  const sourceManifest = JSON.parse(
     readFileSync(new URL("../.liskov/uptime-prober.policy.json", import.meta.url), "utf8")
   );
 
-  assert.equal(acurast.verifiedOnly, false);
-  assert.equal(acurast.managerId, "9470");
-  assert.equal(acurast.assignmentStrategy, "single");
-  assert.equal(acurast.processorSelection.mode, "open-market");
-  assert.equal(acurast.processorSelection.requireScheduleClear, true);
-  assert.equal(acurast.processorSelection.requireConsumerAccess, true);
-  assert.equal(entry.policyTemplate.runtime.durationMs, 1_800_000);
-  assert.equal(entry.policyTemplate.ingress.mode, "none");
-  assert.equal("childSessionDurationMs" in entry.policyTemplate.ingress, false);
-  assert.equal(sourcePolicy.runtime.durationMs, 1_800_000);
-  assert.equal(sourcePolicy.ingress.mode, "none");
-  assert.equal("childSessionDurationMs" in sourcePolicy.ingress, false);
+  assert.equal(entry.policyTemplate.schema, "proof.liskov.application-manifest");
+  assert.equal(entry.policyTemplate.release.mode, "pinned");
+  assert.equal(entry.policyTemplate.release.artifact.kind, "ipfs_bundle");
+  assert.equal(entry.policyTemplate.release.artifact.cid, entry.artifact.cid);
+  assert.equal(entry.policyTemplate.release.artifact.digest, entry.artifact.digest);
+  assert.equal("builder" in entry.policyTemplate.release, false);
+  assert.equal("build" in entry.policyTemplate, false);
+  assert.equal(templateSelection.mode, "open_market");
+  assert.equal(templateSelection.requireScheduleClear, true);
+  assert.equal(templateSelection.requireConsumerAccess, true);
+  assert.equal(entry.policyTemplate.deployment.schedule.durationMs, 1_800_000);
+  assert.deepEqual(entry.policyTemplate.ingress, {});
+
+  assert.equal(sourceManifest.schema, "proof.liskov.application-manifest");
+  assert.equal(sourceManifest.release.mode, "build");
+  assert.equal(sourceManifest.release.artifact.kind, "ipfs_bundle");
+  assert.equal(
+    sourceManifest.release.builder.workflowRef,
+    "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"
+  );
+  assert.equal(sourceManifest.deployment.schedule.durationMs, 1_800_000);
+  assert.deepEqual(sourceManifest.ingress, {});
 
   assert.equal(entry.optionsSchema.host.delivery, "slipway");
   assert.equal(entry.optionsSchema.telegramChatId.delivery, "slipway");
 
-  assert.equal(entry.policyTemplate.blackbox.configSource, "liskov.builtin");
-  assert.deepEqual(entry.policyTemplate.secrets.declarations, []);
-  assert.deepEqual(entry.policyTemplate.environment.variables, []);
+  assert.equal(entry.policyTemplate.observability.logs.enabled, true);
+  assert.deepEqual(entry.policyTemplate.configuration.secrets, []);
+  assert.deepEqual(entry.policyTemplate.configuration.variables, []);
   assert.equal(entry.artifact.cid, "ipfs://QmQCpRJ593xRyKko9smvtFixzfAGwDuG6gXBemRtUeSe4U");
   assert.equal(entry.artifact.digest, "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57");
-  assert.equal(
-    entry.policyTemplate.artifactAutomation.github.workflowRef,
-    "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"
-  );
 });
 
 test("artifact workflow ships the stage0 wrapper and app bundle", () => {
@@ -178,7 +184,7 @@ test("artifact workflow ships the stage0 wrapper and app bundle", () => {
   assert.match(workflow, /extra-files:\s+app\.cjs/u);
 });
 
-test("policy workflow publishes through the reusable GitHub-OIDC route", () => {
+test("manifest workflow imports a draft through the reusable GitHub-OIDC route", () => {
   const workflow = readFileSync(
     new URL("../../.github/workflows/uptime-prober-policy.yml", import.meta.url),
     "utf8"
@@ -187,7 +193,8 @@ test("policy workflow publishes through the reusable GitHub-OIDC route", () => {
   assert.match(workflow, /permissions:\s*\n\s+id-token:\s+write/u);
   assert.match(workflow, /liskov-github-actions\/\.github\/workflows\/policy-sync\.yml@main/u);
   assert.match(workflow, /application-id:\s+uptime-prober/u);
-  assert.match(workflow, /policy-path:\s+uptime-prober\/\.liskov\/uptime-prober\.policy\.json/u);
+  assert.match(workflow, /manifest-path:\s+uptime-prober\/\.liskov\/uptime-prober\.policy\.json/u);
+  assert.doesNotMatch(workflow, /\bpublish:/u);
 });
 
 test("bootstrap tracing reports safe identity and HTTP milestones", async () => {

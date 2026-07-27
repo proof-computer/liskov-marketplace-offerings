@@ -23,6 +23,7 @@ jobs:
     with:
       app-id: uptime-prober
       working-directory: uptime-prober
+      authored-manifest-path: uptime-prober/.liskov/uptime-prober.policy.json
       entrypoint: bundle.cjs
       extra-files: app.cjs
       # The artifact-pin route validates this repo + workflowRef against the
