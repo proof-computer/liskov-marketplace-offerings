@@ -149,6 +149,8 @@ test("marketplace template pins its release while the repository manifest retain
   assert.equal(entry.policyTemplate.release.artifact.kind, "ipfs_bundle");
   assert.equal(entry.policyTemplate.release.artifact.cid, entry.artifact.cid);
   assert.equal(entry.policyTemplate.release.artifact.digest, entry.artifact.digest);
+  assert.equal(entry.policyTemplate.release.artifact.encryption.mode, "none");
+  assert.equal(entry.artifact.requiredEncryptionMode, "none");
   assert.equal("builder" in entry.policyTemplate.release, false);
   assert.equal("build" in entry.policyTemplate, false);
   assert.equal(templateSelection.mode, "open_market");
@@ -160,6 +162,7 @@ test("marketplace template pins its release while the repository manifest retain
   assert.equal(sourceManifest.schema, "proof.liskov.application-manifest");
   assert.equal(sourceManifest.release.mode, "build");
   assert.equal(sourceManifest.release.artifact.kind, "ipfs_bundle");
+  assert.equal(sourceManifest.release.artifact.encryption.mode, "none");
   assert.equal(
     sourceManifest.release.builder.workflowRef,
     "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"

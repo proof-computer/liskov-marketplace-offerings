@@ -12,7 +12,7 @@
     "artifact": {
       "kind": "ipfs_bundle",
       "encryption": {
-        "mode": "aes256_gcm"
+        "mode": "none"
       }
     },
     "builder": {
