@@ -13,7 +13,7 @@ jobs:
     uses: proof-computer/liskov-github-actions/.github/workflows/cargo-runtime-image.yml@v1
     with:
       application-id: rust-hello-world
-      manifest-path: rust-hello-world/.liskov/application.json
+      manifest-path: .liskov/rust-hello-world.policy.json
       working-directory: rust-hello-world
       binary-name: rust-hello-world
       install-path: /usr/local/bin/rust-hello-world

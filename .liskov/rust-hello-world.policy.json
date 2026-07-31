@@ -24,7 +24,7 @@
         "refs/heads/main"
       ],
       "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/rust-hello-world.yml@refs/heads/main",
-      "manifestPath": "rust-hello-world/.liskov/application.json"
+      "manifestPath": ".liskov/rust-hello-world.policy.json"
     }
   },
   "runtime": {
