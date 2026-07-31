@@ -9,6 +9,7 @@
       "liskov",
       "rust",
       "cargo-runtime-image",
+      "cargo-supervisor-retry-canary",
       "unlisted-example"
     ]
   },
