@@ -87,5 +87,14 @@
       "signed": true
     }
   },
-  "configuration": {}
+  "configuration": {
+    "variables": [
+      {
+        "name": "LISKOV_HELLO_CANARY_FAIL_ONCE_FILE",
+        "required": true,
+        "default": "/tmp/liskov-hello-failed-once",
+        "managed": false
+      }
+    ]
+  }
 }
