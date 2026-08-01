@@ -10,7 +10,7 @@
       "rust",
       "cargo-runtime-image",
       "unlisted-example",
-      "cargo-supervisor-retry-canary-v7"
+      "runtime-ssh-tailscale-private-preview-canary-v1"
     ]
   },
   "release": {
@@ -91,7 +91,16 @@
       "maxNativeFeePlanckPerJob": "10000000000"
     }
   },
-  "ingress": {},
+  "ingress": {
+    "ssh": {
+      "mode": "required",
+      "provider": {
+        "kind": "tailscale",
+        "integrationId": "int_8178e0f43ab09d284fe719d0a6d908dc",
+        "port": 22
+      }
+    }
+  },
   "observability": {
     "logs": {
       "enabled": false
@@ -99,21 +108,5 @@
     "runtimeDiagnostics": {
       "signed": true
     }
-  },
-  "configuration": {
-    "variables": [
-      {
-        "name": "LISKOV_HELLO_CANARY_FAIL_ONCE_FILE",
-        "required": true,
-        "default": "/tmp/liskov-hello-failed-once-v7",
-        "managed": false
-      },
-      {
-        "name": "LISKOV_HELLO_CANARY_EXIT_AFTER_HEARTBEATS",
-        "required": true,
-        "default": "12",
-        "managed": false
-      }
-    ]
   }
 }
