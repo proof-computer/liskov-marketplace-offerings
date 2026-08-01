@@ -10,7 +10,7 @@
       "rust",
       "cargo-runtime-image",
       "unlisted-example",
-      "cargo-logging-outage-canary-v6"
+      "cargo-supervisor-retry-canary-v7"
     ]
   },
   "release": {
@@ -94,10 +94,20 @@
   "ingress": {},
   "observability": {
     "logs": {
-      "enabled": true
+      "enabled": false
     },
     "runtimeDiagnostics": {
       "signed": true
     }
+  },
+  "configuration": {
+    "variables": [
+      {
+        "name": "LISKOV_HELLO_CANARY_FAIL_ONCE_FILE",
+        "required": true,
+        "default": "/tmp/liskov-hello-failed-once-v7",
+        "managed": false
+      }
+    ]
   }
 }
