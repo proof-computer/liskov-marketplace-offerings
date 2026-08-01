@@ -9,7 +9,8 @@
       "liskov",
       "rust",
       "cargo-runtime-image",
-      "unlisted-example"
+      "unlisted-example",
+      "cargo-logging-outage-canary-v6"
     ]
   },
   "release": {
@@ -93,7 +94,7 @@
   "ingress": {},
   "observability": {
     "logs": {
-      "enabled": false
+      "enabled": true
     },
     "runtimeDiagnostics": {
       "signed": true
