@@ -10,7 +10,7 @@
       "rust",
       "cargo-runtime-image",
       "unlisted-example",
-      "runtime-ssh-tailscale-private-preview-canary-v2"
+      "runtime-ssh-tailscale-private-preview-canary-v3"
     ]
   },
   "release": {
@@ -87,7 +87,7 @@
       }
     },
     "spend": {
-      "maxRewardPlanckPerJob": "40000000000",
+      "maxRewardPlanckPerJob": "20000000000",
       "maxNativeFeePlanckPerJob": "10000000000"
     }
   },
