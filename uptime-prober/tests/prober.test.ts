@@ -180,6 +180,23 @@ test("marketplace template pins its release while the repository manifest retain
   assert.equal(entry.artifact.digest, "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57");
 });
 
+test("marketplace metadata explains Telegram token and chat-id prerequisites", () => {
+  const entry = JSON.parse(readFileSync(new URL("../../proof/uptime-prober.json", import.meta.url), "utf8"));
+  const tokenHelp = entry.optionsSchema.telegramBotToken.description;
+  const chatHelp = entry.optionsSchema.telegramChatId.description;
+  assert.match(tokenHelp, /@BotFather/u);
+  assert.match(tokenHelp, /\/newbot/u);
+  assert.match(tokenHelp, /Lockbox/u);
+  assert.match(chatHelp, /\/start/u);
+  assert.match(chatHelp, /getUpdates/u);
+  assert.match(chatHelp, /message\.chat\.id/u);
+
+  const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+  for (const required of ["@BotFather", "/newbot", "/start", "getUpdates", "message.chat.id", "masked"]) {
+    assert.match(readme, new RegExp(required.replaceAll("/", "\\/"), "u"));
+  }
+});
+
 test("artifact workflow ships the stage0 wrapper and app bundle", () => {
   const workflow = readFileSync(new URL("../../.github/workflows/uptime-prober.yml", import.meta.url), "utf8");
 

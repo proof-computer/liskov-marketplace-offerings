@@ -49,6 +49,18 @@ A normal run also logs the verdict on its first tick.
 
 ## Config (marketplace mapping)
 
+### Telegram prerequisites
+
+1. In Telegram, open the verified **@BotFather** account, send `/newbot`, and
+   follow the prompts. Copy the HTTP API token BotFather returns.
+2. Open the new bot's chat and send `/start`; Telegram will not let the bot
+   message you until you do this.
+3. Open `https://api.telegram.org/bot<TOKEN>/getUpdates` with that token and copy
+   the numeric `result[].message.chat.id` value.
+4. In the Liskov Marketplace wizard, paste the token only into the masked
+   **Telegram bot token** field and the numeric id into **Telegram chat ID**.
+   Liskov seals the token to Lockbox and never writes it into the policy.
+
 | Env var | Marketplace option | Notes |
 | --- | --- | --- |
 | `UPTIME_PROBER_HOST` | user config (`env`) | URL to probe + screenshot |

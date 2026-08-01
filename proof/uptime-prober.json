@@ -129,7 +129,7 @@
       "target": "UPTIME_PROBER_TG_BOT_TOKEN",
       "secretBundleId": "uptime-prober-tg",
       "label": "Telegram bot token",
-      "description": "Your own bot token from BotFather (sealed via Lockbox; never stored in plaintext)."
+      "description": "In Telegram, open the verified @BotFather account, send /newbot, follow the prompts, and copy the HTTP API token. Paste it only here; Liskov seals it via Lockbox and never writes it into the policy."
     },
     "telegramChatId": {
       "type": "env",
@@ -138,7 +138,7 @@
       "target": "UPTIME_PROBER_TG_CHAT_ID",
       "delivery": "slipway",
       "label": "Telegram chat ID",
-      "description": "Your numeric chat id (after you /start your own bot)."
+      "description": "Open your new bot and send /start. Then open https://api.telegram.org/bot<TOKEN>/getUpdates and copy the numeric result[].message.chat.id value."
     }
   },
   "pricingRequest": { "model": "free" }
