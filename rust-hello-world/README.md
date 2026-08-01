@@ -28,8 +28,11 @@ not deploy the application.
 The internal canary may temporarily declare
 `LISKOV_HELLO_CANARY_FAIL_ONCE_FILE` with a unique absolute marker path. The
 first attempt atomically creates that marker and exits 42; the next exact argv
-attempt observes it and stays alive. The declaration is removed again when the
-release canary is complete; the normal manifest does not set this variable.
+attempt observes it and stays alive. It may also temporarily declare
+`LISKOV_HELLO_CANARY_EXIT_AFTER_HEARTBEATS` with a bounded count so the recovered
+attempt exits zero and proves exact terminal-result propagation. Both
+declarations are removed again when the release canary is complete; the normal
+manifest does not set either variable.
 
 ## Customer-owned Tailscale fragment
 
