@@ -107,6 +107,12 @@
         "required": true,
         "default": "/tmp/liskov-hello-failed-once-v7",
         "managed": false
+      },
+      {
+        "name": "LISKOV_HELLO_CANARY_EXIT_AFTER_HEARTBEATS",
+        "required": true,
+        "default": "12",
+        "managed": false
       }
     ]
   }
