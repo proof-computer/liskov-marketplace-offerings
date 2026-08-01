@@ -25,11 +25,11 @@ not deploy the application.
 
 ## Supervisor restart canary
 
-The internal canary may set
-`LISKOV_HELLO_CANARY_FAIL_ONCE_FILE=/tmp/liskov-hello-failed-once`. The first
-attempt atomically creates that absolute marker and exits 42; the next exact
-argv attempt observes it and stays alive. The normal manifest does not declare
-or set this variable.
+The internal canary may temporarily declare
+`LISKOV_HELLO_CANARY_FAIL_ONCE_FILE` with a unique absolute marker path. The
+first attempt atomically creates that marker and exits 42; the next exact argv
+attempt observes it and stays alive. The declaration is removed again when the
+release canary is complete; the normal manifest does not set this variable.
 
 ## Customer-owned Tailscale fragment
 

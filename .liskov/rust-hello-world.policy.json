@@ -9,7 +9,7 @@
       "liskov",
       "rust",
       "cargo-runtime-image",
-      "cargo-supervisor-retry-canary-v3",
+      "cargo-supervisor-retry-canary-v4",
       "unlisted-example"
     ]
   },
@@ -105,7 +105,7 @@
       {
         "name": "LISKOV_HELLO_CANARY_FAIL_ONCE_FILE",
         "required": true,
-        "default": "/tmp/liskov-hello-failed-once",
+        "default": "/tmp/liskov-hello-failed-once-v4",
         "managed": false
       }
     ]
