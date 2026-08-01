@@ -9,7 +9,8 @@
       "liskov",
       "rust",
       "cargo-runtime-image",
-      "unlisted-example"
+      "unlisted-example",
+      "runtime-ssh-tailscale-private-preview-canary-v2"
     ]
   },
   "release": {
@@ -90,7 +91,16 @@
       "maxNativeFeePlanckPerJob": "10000000000"
     }
   },
-  "ingress": {},
+  "ingress": {
+    "ssh": {
+      "mode": "required",
+      "provider": {
+        "kind": "tailscale",
+        "integrationId": "int_8178e0f43ab09d284fe719d0a6d908dc",
+        "port": 22
+      }
+    }
+  },
   "observability": {
     "logs": {
       "enabled": false
