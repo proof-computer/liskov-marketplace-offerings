@@ -3,7 +3,7 @@ name: uptime-prober artifact
 # Build → IPFS-pin (→ attest) the proof/uptime-prober offering app via the shared
 # reusable pipeline. See liskov-agent-orchestrator BKLG-20260624-m3a6 / jn9l.
 #
-# Pin @main today; switch to @v1 once liskov-github-actions tags a release.
+# Consume the released major tag; immutable release tags remain available for audit.
 
 on:
   push:
@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   artifact:
-    uses: proof-computer/liskov-github-actions/.github/workflows/acurast-app.yml@main
+    uses: proof-computer/liskov-github-actions/.github/workflows/acurast-app.yml@v1
     with:
       app-id: uptime-prober
       working-directory: uptime-prober
