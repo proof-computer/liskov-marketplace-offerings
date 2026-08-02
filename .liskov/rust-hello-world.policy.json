@@ -10,7 +10,7 @@
       "rust",
       "cargo-runtime-image",
       "unlisted-example",
-      "runtime-ssh-tailscale-private-preview-canary-v28"
+      "runtime-ssh-tailscale-private-preview-canary-v29"
     ]
   },
   "release": {
@@ -60,7 +60,7 @@
     },
     "schedule": {
       "durationMs": 2700000,
-      "startDelayMs": 600000,
+      "startDelayMs": 300000,
       "maxStartDelayMs": 300000
     },
     "lifecycle": {
