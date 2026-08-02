@@ -10,7 +10,7 @@
       "rust",
       "cargo-runtime-image",
       "unlisted-example",
-      "runtime-ssh-tailscale-private-preview-canary-v13"
+      "runtime-ssh-tailscale-private-preview-canary-v14"
     ]
   },
   "release": {
