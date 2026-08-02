@@ -10,7 +10,7 @@
       "rust",
       "cargo-runtime-image",
       "unlisted-example",
-      "runtime-ssh-tailscale-private-preview-canary-v30"
+      "runtime-ssh-tailscale-private-preview-canary-v31"
     ]
   },
   "release": {
@@ -108,5 +108,21 @@
     "runtimeDiagnostics": {
       "signed": true
     }
+  },
+  "configuration": {
+    "variables": [
+      {
+        "name": "LISKOV_HELLO_CANARY_FAIL_ONCE_FILE",
+        "required": true,
+        "default": "/tmp/liskov-hello-failed-once-runtime-ssh-v36",
+        "managed": false
+      },
+      {
+        "name": "LISKOV_HELLO_CANARY_EXIT_AFTER_HEARTBEATS",
+        "required": true,
+        "default": "60",
+        "managed": false
+      }
+    ]
   }
 }
