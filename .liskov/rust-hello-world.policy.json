@@ -10,7 +10,7 @@
       "rust",
       "cargo-runtime-image",
       "unlisted-example",
-      "runtime-ssh-tailscale-private-preview-canary-v16"
+      "runtime-ssh-tailscale-private-preview-canary-v17"
     ]
   },
   "release": {
@@ -48,13 +48,14 @@
     "parallelism": 1,
     "placement": {
       "processorSelection": {
-        "mode": "open_market",
-        "allowUnknownManager": false,
+        "mode": "static",
+        "processorIds": [
+          "5H9yzELTGKhjAH2MW77HqK6nvqT4zgScnCF3U3tzeuY7mRK8"
+        ],
         "requireScheduleClear": true,
         "requireConsumerAccess": true,
         "maxHeartbeatAgeSeconds": 43200,
-        "candidateLimit": 8,
-        "scanLimit": 500
+        "candidateLimit": 1
       }
     },
     "schedule": {
