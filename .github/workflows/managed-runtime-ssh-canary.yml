@@ -13,7 +13,7 @@ jobs:
     uses: proof-computer/liskov-github-actions/.github/workflows/cargo-runtime-image.yml@v1
     with:
       application-id: managed-runtime-ssh-canary-cargo-20260803
-      manifest-path: .liskov/managed-runtime-ssh-canary-cargo.policy.json
+      manifest-path: .liskov/managed-runtime-ssh-canary-cargo-20260803.policy.json
       working-directory: managed-runtime-ssh-canary
       binary-name: managed-runtime-ssh-canary
       install-path: /usr/local/bin/managed-runtime-ssh-canary
