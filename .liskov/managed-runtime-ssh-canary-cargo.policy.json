@@ -1,0 +1,105 @@
+{
+  "schema": "proof.liskov.application-manifest",
+  "schemaVersion": 4,
+  "applicationId": "managed-runtime-ssh-canary-cargo-20260803",
+  "metadata": {
+    "appType": "background-worker",
+    "description": "Disposable private canary for ADR-0045 managed Runtime SSH acceptance.",
+    "labels": [
+      "liskov",
+      "cargo-runtime-image",
+      "private-canary",
+      "managed-runtime-ssh"
+    ]
+  },
+  "release": {
+    "mode": "build",
+    "artifact": {
+      "kind": "runtime_image"
+    },
+    "builder": {
+      "kind": "github",
+      "repository": "proof-computer/liskov-marketplace-offerings",
+      "allowedRefs": [
+        "refs/heads/main"
+      ],
+      "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/managed-runtime-ssh-canary.yml@refs/heads/main",
+      "manifestPath": ".liskov/managed-runtime-ssh-canary-cargo.policy.json"
+    }
+  },
+  "runtime": {
+    "command": "/usr/local/bin/managed-runtime-ssh-canary",
+    "maxGenerations": 1,
+    "role": "background-worker",
+    "resources": {
+      "memoryMiB": 256,
+      "storageMiB": 512,
+      "networkRequestQuota": 256
+    },
+    "requiredModules": [],
+    "bootstrap": {
+      "trustProfile": "proof.liskov.attested-runtime.v1",
+      "signedDiagnosticsRequired": true,
+      "identityBoundSecretsRequired": true
+    }
+  },
+  "deployment": {
+    "parallelism": 1,
+    "placement": {
+      "processorSelection": {
+        "mode": "static",
+        "processorIds": [
+          "5H9yzELTGKhjAH2MW77HqK6nvqT4zgScnCF3U3tzeuY7mRK8"
+        ],
+        "requireScheduleClear": true,
+        "requireConsumerAccess": true,
+        "maxHeartbeatAgeSeconds": 43200,
+        "candidateLimit": 1
+      }
+    },
+    "schedule": {
+      "durationMs": 10800000,
+      "startDelayMs": 600000,
+      "maxStartDelayMs": 600000
+    },
+    "lifecycle": {
+      "renewal": {
+        "mode": "after_scheduled_end"
+      },
+      "update": {
+        "timing": "immediate",
+        "existingJobs": {
+          "mode": "run_until_scheduled_end"
+        }
+      },
+      "recovery": {
+        "launch": {
+          "maxRetries": 0
+        },
+        "runtimeFailure": {
+          "mode": "wait_until_scheduled_end"
+        }
+      }
+    },
+    "spend": {
+      "maxRewardPlanckPerJob": "20000000000",
+      "maxNativeFeePlanckPerJob": "10000000000"
+    }
+  },
+  "ingress": {
+    "ssh": {
+      "mode": "disabled"
+    }
+  },
+  "observability": {
+    "logs": {
+      "enabled": true
+    },
+    "runtimeDiagnostics": {
+      "signed": true
+    }
+  },
+  "configuration": {
+    "variables": []
+  }
+}
