@@ -25,7 +25,7 @@
         "refs/heads/main"
       ],
       "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/rust-hello-world.yml@refs/heads/main",
-      "manifestPath": ".liskov/rust-hello-world.policy.json"
+      "manifestPath": ".liskov/runtime-ssh-constrained-canary.policy.json"
     }
   },
   "runtime": {
