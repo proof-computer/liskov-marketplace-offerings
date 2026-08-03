@@ -48,14 +48,12 @@
     "parallelism": 1,
     "placement": {
       "processorSelection": {
-        "mode": "static",
-        "processorIds": [
-          "5H9yzELTGKhjAH2MW77HqK6nvqT4zgScnCF3U3tzeuY7mRK8"
-        ],
+        "mode": "open_market",
         "requireScheduleClear": true,
         "requireConsumerAccess": true,
-        "maxHeartbeatAgeSeconds": 43200,
-        "candidateLimit": 1
+        "maxHeartbeatAgeSeconds": 1800,
+        "candidateLimit": 8,
+        "scanLimit": 500
       }
     },
     "schedule": {
