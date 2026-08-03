@@ -10,7 +10,7 @@
       "rust",
       "cargo-runtime-image",
       "unlisted-example",
-      "runtime-ssh-tailscale-private-preview-canary-v31"
+      "runtime-ssh-constrained-provider-log-canary-v37"
     ]
   },
   "release": {
@@ -103,7 +103,7 @@
   },
   "observability": {
     "logs": {
-      "enabled": false
+      "enabled": true
     },
     "runtimeDiagnostics": {
       "signed": true
@@ -114,7 +114,7 @@
       {
         "name": "LISKOV_HELLO_CANARY_FAIL_ONCE_FILE",
         "required": true,
-        "default": "/tmp/liskov-hello-failed-once-runtime-ssh-v36",
+        "default": "/tmp/liskov-hello-failed-once-runtime-ssh-v37",
         "managed": false
       },
       {
