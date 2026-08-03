@@ -3,6 +3,8 @@
 This is the disposable Cargo workload for ADR-0045 live acceptance. It does not
 contain access credentials or SSH configuration. The Liskov application is
 private even though the non-secret workload and build provenance are public.
+The one-slot deployment uses the schedule-aware open market so paused preflight
+can select a fresh processor instead of binding this canary to a busy fixture.
 
 The existing `liskov-runtime-contact` helper sets up the canary-only managed
 access adapter before starting this exact customer command. The process emits a
