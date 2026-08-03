@@ -13,7 +13,7 @@ jobs:
     uses: proof-computer/liskov-github-actions/.github/workflows/cargo-runtime-image.yml@v1
     with:
       application-id: runtime-ssh-constrained-canary
-      manifest-path: .liskov/rust-hello-world.policy.json
+      manifest-path: .liskov/runtime-ssh-constrained-canary.policy.json
       working-directory: rust-hello-world
       binary-name: rust-hello-world
       install-path: /usr/local/bin/rust-hello-world
