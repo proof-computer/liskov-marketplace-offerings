@@ -1,7 +1,7 @@
 {
   "schema": "proof.liskov.application-manifest",
   "schemaVersion": 4,
-  "applicationId": "rust-hello-world",
+  "applicationId": "runtime-ssh-constrained-canary",
   "metadata": {
     "appType": "background-worker",
     "description": "Unlisted native Rust example for the Liskov Cargo runtime-image path.",
@@ -10,7 +10,7 @@
       "rust",
       "cargo-runtime-image",
       "unlisted-example",
-      "runtime-ssh-constrained-provider-log-canary-v38"
+      "runtime-ssh-constrained-provider-log-canary-v39"
     ]
   },
   "release": {
