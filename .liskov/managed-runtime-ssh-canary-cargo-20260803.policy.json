@@ -24,7 +24,7 @@
         "refs/heads/main"
       ],
       "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/managed-runtime-ssh-canary.yml@refs/heads/main",
-      "manifestPath": ".liskov/managed-runtime-ssh-canary-cargo.policy.json"
+      "manifestPath": ".liskov/managed-runtime-ssh-canary-cargo-20260803.policy.json"
     }
   },
   "runtime": {
