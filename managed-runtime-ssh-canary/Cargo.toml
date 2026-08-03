@@ -1,0 +1,13 @@
+[package]
+name = "managed-runtime-ssh-canary"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+description = "Disposable ADR-0045 managed Runtime SSH acceptance workload"
+license = "Apache-2.0"
+publish = false
+
+[profile.release]
+codegen-units = 1
+lto = true
+strip = true
