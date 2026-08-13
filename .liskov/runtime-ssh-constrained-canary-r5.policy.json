@@ -57,7 +57,7 @@
       }
     },
     "schedule": {
-      "durationMs": 2700000,
+      "durationMs": 86400000,
       "startDelayMs": 300000,
       "maxStartDelayMs": 300000
     },
@@ -66,7 +66,7 @@
         "mode": "before_scheduled_end",
         "leadTime": {
           "mode": "fixed",
-          "durationMs": 60000
+          "durationMs": 1800000
         }
       },
       "update": {
@@ -85,7 +85,7 @@
       }
     },
     "spend": {
-      "maxRewardPlanckPerJob": "20000000000",
+      "maxRewardPlanckPerJob": "800000000000",
       "maxNativeFeePlanckPerJob": "10000000000"
     }
   },
@@ -108,13 +108,6 @@
     }
   },
   "configuration": {
-    "variables": [
-      {
-        "name": "LISKOV_HELLO_CANARY_EXIT_AFTER_HEARTBEATS",
-        "required": true,
-        "default": "60",
-        "managed": false
-      }
-    ]
+    "variables": []
   }
 }
