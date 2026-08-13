@@ -57,7 +57,7 @@
       }
     },
     "schedule": {
-      "durationMs": 86400000,
+      "durationMs": 2700000,
       "startDelayMs": 300000,
       "maxStartDelayMs": 300000
     },
@@ -66,7 +66,7 @@
         "mode": "before_scheduled_end",
         "leadTime": {
           "mode": "fixed",
-          "durationMs": 1800000
+          "durationMs": 60000
         }
       },
       "update": {
@@ -85,7 +85,7 @@
       }
     },
     "spend": {
-      "maxRewardPlanckPerJob": "800000000000",
+      "maxRewardPlanckPerJob": "20000000000",
       "maxNativeFeePlanckPerJob": "10000000000"
     }
   },
