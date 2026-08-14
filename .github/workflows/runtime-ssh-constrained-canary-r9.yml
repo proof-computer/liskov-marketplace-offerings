@@ -1,0 +1,24 @@
+name: Build constrained Tailscale canary r9 image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  attestations: write
+  contents: read
+  id-token: write
+
+jobs:
+  image:
+    uses: proof-computer/liskov-github-actions/.github/workflows/cargo-runtime-image.yml@v1
+    with:
+      application-id: runtime-ssh-constrained-canary-r9
+      manifest-path: .liskov/runtime-ssh-constrained-canary-r9.policy.json
+      working-directory: rust-hello-world
+      binary-name: rust-hello-world
+      install-path: /usr/local/bin/rust-hello-world
+      base-image-url: https://github.com/proof-computer/liskov-runtime-images/releases/download/v0.1.0-rc.12/liskov-runtime-image-debian-trixie-aarch64.tar.xz
+      base-image-sha256: 0639e88db6b46cef6091acafe35dfb1b59c5e354463d969f1a9509451d118377
+      base-attestation-repository: proof-computer/liskov-runtime-images
+      base-attestation-source-digest: d3a7b61e7e2acb2e2f686c6fc1379d2ee74ea582
+      base-attestation-signer-workflow: proof-computer/liskov-runtime-images/.github/workflows/ci.yml
