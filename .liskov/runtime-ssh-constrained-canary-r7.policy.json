@@ -33,7 +33,7 @@
     "maxGenerations": 10,
     "role": "background-worker",
     "resources": {
-      "memoryMiB": 128,
+      "memoryMiB": 512,
       "storageMiB": 256,
       "networkRequestQuota": 0
     },
