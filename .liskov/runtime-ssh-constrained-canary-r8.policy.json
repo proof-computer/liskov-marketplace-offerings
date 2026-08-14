@@ -57,7 +57,7 @@
       }
     },
     "schedule": {
-      "durationMs": 2700000,
+      "durationMs": 2760000,
       "startDelayMs": 300000,
       "maxStartDelayMs": 300000
     },
