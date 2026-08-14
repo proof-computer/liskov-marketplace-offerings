@@ -4,7 +4,7 @@
   "applicationId": "runtime-ssh-constrained-canary-r8",
   "metadata": {
     "appType": "background-worker",
-    "description": "Constrained Tailscale Runtime SSH canary, eighth generation.",
+    "description": "Constrained Tailscale Runtime SSH canary, eighth generation, helper 0.10.18 articulate-failure run.",
     "labels": [
       "liskov",
       "rust",
