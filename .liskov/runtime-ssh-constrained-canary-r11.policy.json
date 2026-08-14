@@ -1,0 +1,113 @@
+{
+  "schema": "proof.liskov.application-manifest",
+  "schemaVersion": 4,
+  "applicationId": "runtime-ssh-constrained-canary-r11",
+  "metadata": {
+    "appType": "background-worker",
+    "description": "Constrained Tailscale Runtime SSH canary, eleventh generation",
+    "labels": [
+      "liskov",
+      "rust",
+      "cargo-runtime-image",
+      "unlisted-example",
+      "runtime-ssh-constrained-provider-canary-r11"
+    ]
+  },
+  "release": {
+    "mode": "build",
+    "artifact": {
+      "kind": "runtime_image"
+    },
+    "builder": {
+      "kind": "github",
+      "repository": "proof-computer/liskov-marketplace-offerings",
+      "allowedRefs": [
+        "refs/heads/main"
+      ],
+      "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/runtime-ssh-constrained-canary-r11.yml@refs/heads/main",
+      "manifestPath": ".liskov/runtime-ssh-constrained-canary-r11.policy.json"
+    }
+  },
+  "runtime": {
+    "command": "/usr/local/bin/rust-hello-world",
+    "maxGenerations": 10,
+    "role": "background-worker",
+    "resources": {
+      "memoryMiB": 256,
+      "storageMiB": 256,
+      "networkRequestQuota": 0
+    },
+    "requiredModules": [],
+    "bootstrap": {
+      "trustProfile": "proof.liskov.attested-runtime.v1",
+      "signedDiagnosticsRequired": true,
+      "identityBoundSecretsRequired": true
+    }
+  },
+  "deployment": {
+    "parallelism": 1,
+    "placement": {
+      "processorSelection": {
+        "mode": "open_market",
+        "requireScheduleClear": true,
+        "requireConsumerAccess": true,
+        "maxHeartbeatAgeSeconds": 1800,
+        "candidateLimit": 8,
+        "scanLimit": 500
+      }
+    },
+    "schedule": {
+      "durationMs": 2760000,
+      "startDelayMs": 300000,
+      "maxStartDelayMs": 300000
+    },
+    "lifecycle": {
+      "renewal": {
+        "mode": "before_scheduled_end",
+        "leadTime": {
+          "mode": "fixed",
+          "durationMs": 60000
+        }
+      },
+      "update": {
+        "timing": "immediate",
+        "existingJobs": {
+          "mode": "run_until_scheduled_end"
+        }
+      },
+      "recovery": {
+        "launch": {
+          "maxRetries": 5
+        },
+        "runtimeFailure": {
+          "mode": "wait_until_scheduled_end"
+        }
+      }
+    },
+    "spend": {
+      "maxRewardPlanckPerJob": "20000000000",
+      "maxNativeFeePlanckPerJob": "10000000000"
+    }
+  },
+  "ingress": {
+    "ssh": {
+      "mode": "required",
+      "provider": {
+        "kind": "tailscale",
+        "integrationId": "int_8178e0f43ab09d284fe719d0a6d908dc",
+        "port": 22
+      }
+    }
+  },
+  "observability": {
+    "logs": {
+      "enabled": true
+    },
+    "runtimeDiagnostics": {
+      "signed": true
+    }
+  },
+  "configuration": {
+    "variables": []
+  }
+}
