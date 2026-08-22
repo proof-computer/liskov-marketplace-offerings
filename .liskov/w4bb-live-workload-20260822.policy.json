@@ -1,0 +1,104 @@
+{
+  "schema": "proof.liskov.application-manifest",
+  "schemaVersion": 4,
+  "applicationId": "w4bb-live-workload-20260822",
+  "metadata": {
+    "appType": "background-worker",
+    "description": "Bounded live workload rehearsal for BKLG-20260817-w4bb",
+    "labels": [
+      "liskov",
+      "rust",
+      "cargo-runtime-image",
+      "unlisted-example",
+      "w4bb-live-workload-rehearsal"
+    ]
+  },
+  "release": {
+    "mode": "build",
+    "artifact": {
+      "kind": "runtime_image"
+    },
+    "builder": {
+      "kind": "github",
+      "repository": "proof-computer/liskov-marketplace-offerings",
+      "allowedRefs": [
+        "refs/heads/main"
+      ],
+      "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/w4bb-live-workload-20260822.yml@refs/heads/main",
+      "manifestPath": ".liskov/w4bb-live-workload-20260822.policy.json"
+    }
+  },
+  "runtime": {
+    "command": "/usr/local/bin/rust-hello-world",
+    "maxGenerations": 1,
+    "role": "background-worker",
+    "resources": {
+      "memoryMiB": 256,
+      "storageMiB": 256,
+      "networkRequestQuota": 0
+    },
+    "requiredModules": [],
+    "bootstrap": {
+      "trustProfile": "proof.liskov.attested-runtime.v1",
+      "signedDiagnosticsRequired": true,
+      "identityBoundSecretsRequired": true
+    }
+  },
+  "deployment": {
+    "parallelism": 1,
+    "placement": {
+      "processorSelection": {
+        "mode": "open_market",
+        "requireScheduleClear": true,
+        "requireConsumerAccess": true,
+        "maxHeartbeatAgeSeconds": 1800,
+        "candidateLimit": 8,
+        "scanLimit": 500
+      }
+    },
+    "schedule": {
+      "durationMs": 2760000,
+      "startDelayMs": 300000,
+      "maxStartDelayMs": 300000
+    },
+    "lifecycle": {
+      "renewal": {
+        "mode": "before_scheduled_end",
+        "leadTime": {
+          "mode": "fixed",
+          "durationMs": 60000
+        }
+      },
+      "update": {
+        "timing": "immediate",
+        "existingJobs": {
+          "mode": "run_until_scheduled_end"
+        }
+      },
+      "recovery": {
+        "launch": {
+          "maxRetries": 0
+        },
+        "runtimeFailure": {
+          "mode": "wait_until_scheduled_end"
+        }
+      }
+    },
+    "spend": {
+      "maxRewardPlanckPerJob": "20000000000",
+      "maxNativeFeePlanckPerJob": "10000000000"
+    }
+  },
+  "ingress": {},
+  "observability": {
+    "logs": {
+      "enabled": true
+    },
+    "runtimeDiagnostics": {
+      "signed": true
+    }
+  },
+  "configuration": {
+    "variables": []
+  }
+}
