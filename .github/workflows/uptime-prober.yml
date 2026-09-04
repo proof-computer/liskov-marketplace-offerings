@@ -29,6 +29,9 @@ jobs:
       # The artifact-pin route validates this repo + workflowRef against the
       # registered Application's artifactAutomation.github config.
       attest: true
+      # ADR-0106: regenerate and verify the committed SBOM, and print the
+      # git-tree digest the Marketplace descriptor's sourceAssurance declares.
+      source-assurance: true
     secrets:
       ACURAST_IPFS_URL: ${{ secrets.ACURAST_IPFS_URL }}
       ACURAST_IPFS_API_KEY: ${{ secrets.ACURAST_IPFS_API_KEY }}
