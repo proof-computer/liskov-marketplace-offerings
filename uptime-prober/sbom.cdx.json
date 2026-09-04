@@ -1,0 +1,450 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "Svl7tq8k/08+p6CXPpRjQ1fKX+1odH/BQbb48fV6fj3CWHhsoIOoY87w1oHXm0qEpkIK3ZfVgp0hed3XBXzXMQ=="
+        }
+      ],
+      "name": "@esbuild/aix-ppc64",
+      "purl": "pkg:npm/%40esbuild/aix-ppc64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "0k2F129Xdio1TdJfzJ8sy1Q47vUD2NnwdhiAf7drUN1EBTfPf4hsFCtmMgu/6m8JSzsBrlmVjudMBQqOfG8usQ=="
+        }
+      ],
+      "name": "@esbuild/android-arm",
+      "purl": "pkg:npm/%40esbuild/android-arm@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "34EGEbCIAgosYz6goLcopX6Mo7NyGv9tfwEM2/7Ce2VcVRk568iSvniGWcUXIy7wEDR1wzolcxcriFVrWYcwBg=="
+        }
+      ],
+      "name": "@esbuild/android-arm64",
+      "purl": "pkg:npm/%40esbuild/android-arm64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "dbwY7ltSMDWsRatcRpCnES4F+im88OCUgGZjy52shC7GqHRE/cYlxNbB4Z4UpJswpcc4Qxd2oE/ufM0p61IKng=="
+        }
+      ],
+      "name": "@esbuild/android-x64",
+      "purl": "pkg:npm/%40esbuild/android-x64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "TZbWkQY7kvTAXbXUT7uVACR5cMHsDiSz9z7ZKAX/RTq/WJEk3QyRr0wZpNhBDX+/0CtdqUIJlOiodQcta6tY3Q=="
+        }
+      ],
+      "name": "@esbuild/darwin-arm64",
+      "purl": "pkg:npm/%40esbuild/darwin-arm64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "zfdzgK9ACBNZLI/CyHTOx81SyNbM6YXn7rxSgX97VjyiPl9W1i4Ka4fgKECEoFCKGpvBj5qArWIGgQjOwkgskQ=="
+        }
+      ],
+      "name": "@esbuild/darwin-x64",
+      "purl": "pkg:npm/%40esbuild/darwin-x64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "wG2EA8ENdEI0qhkSZMjfqrdY+ziCYCPMmtZjjIwOmXFjmyzEHn+UUxk5of+SYsjtfs3VpnlC7QLzSI5hY/rOAw=="
+        }
+      ],
+      "name": "@esbuild/freebsd-arm64",
+      "purl": "pkg:npm/%40esbuild/freebsd-arm64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "i7dZ9vQgnvSCzi/rYCXNgtF/U+eKZNJBzu3eTQbRgHnM7tNSizLOkRFAl3qzVc/Op/u5YkHHa4pf/3DOYHthLQ=="
+        }
+      ],
+      "name": "@esbuild/freebsd-x64",
+      "purl": "pkg:npm/%40esbuild/freebsd-x64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "qVXBOHQS+d5Y722GwJzJUtOLlX7km3CraOaGormF1pDtPd2C/l1SHRPgjLunLGe51Sh5YYWKMFDyV4SxgMQYTQ=="
+        }
+      ],
+      "name": "@esbuild/linux-arm",
+      "purl": "pkg:npm/%40esbuild/linux-arm@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "yHs+0uc8+nvEAfAfxrWQKK5peSNzBc4PegcMO0EJ2hT71uA7vB8Ihg2e77R2P7SG5uYjPbHlLLmve4LLLRCf0g=="
+        }
+      ],
+      "name": "@esbuild/linux-arm64",
+      "purl": "pkg:npm/%40esbuild/linux-arm64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "d1z4ZuP0ajrfz/FhGT4vv278rX8KnPPJx8i5+AtK7TYbx9Le9F1hyzurZpkEyjkGa9dUGhQow4C1NmeGvqxN2w=="
+        }
+      ],
+      "name": "@esbuild/linux-ia32",
+      "purl": "pkg:npm/%40esbuild/linux-ia32@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "M5sRjUVZrkm1OAPR3dlOYzNmN+loZKGVi1VUQGrwuqLcbR6qeAz+famMhjASeH3YVKvZz+zT1jlh/keC3Rj/lg=="
+        }
+      ],
+      "name": "@esbuild/linux-loong64",
+      "purl": "pkg:npm/%40esbuild/linux-loong64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "mRObBZeHh2OxcBFPWE/FjylkRgZdYuiTR3vaTozquCGOH14iP9oN4x4Ge81CoIDYQrXmIxpFumJBu5MtZpnQJQ=="
+        }
+      ],
+      "name": "@esbuild/linux-mips64el",
+      "purl": "pkg:npm/%40esbuild/linux-mips64el@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "slScBsMAb3GFDcdrCgLwZtPYRoH2H/youv10QiZyRjmsP48fznoveWytSgCI/R0ZcUgpc0ZhIUEx6LHts8yrfQ=="
+        }
+      ],
+      "name": "@esbuild/linux-ppc64",
+      "purl": "pkg:npm/%40esbuild/linux-ppc64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "kw0owk1o0GFETUJyW0jc0G4Yzs0BHZn0JDZ8JRT088vjJYX777BAs1fDGxAC+q831qOs2DTC96mNsG2opdfyyQ=="
+        }
+      ],
+      "name": "@esbuild/linux-riscv64",
+      "purl": "pkg:npm/%40esbuild/linux-riscv64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "/lAIjX8aYFRByhh6L5rYtPEDRqa9de/4V/juOXcta5frjvzXO4/sqEtyytse0g3zZFuWu5cDN0MkLz2qRDD2Ag=="
+        }
+      ],
+      "name": "@esbuild/linux-s390x",
+      "purl": "pkg:npm/%40esbuild/linux-s390x@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "u/anNYF2mmVOEDwLtnQ1wOr3EZ9sTNGLWrsYGYwHWzGA3Si84IOkHXlbWTD1NB+9/1lcnweYKO54uhxZydNzfA=="
+        }
+      ],
+      "name": "@esbuild/linux-x64",
+      "purl": "pkg:npm/%40esbuild/linux-x64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "oks0DYbLwWMmaakTsCb+zL4E+aHRVLom9IJZOAthMQEPiQmydXHkziYEsGYRx0uNV/IjEKGAV941JzH02pflqw=="
+        }
+      ],
+      "name": "@esbuild/netbsd-arm64",
+      "purl": "pkg:npm/%40esbuild/netbsd-arm64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "aeL6lAnN89Hz43Mlh1G8ARasbuoYvSITDEx0tHh5b7jJnHcssqgjy9Yx430GDpmCa6OyrKoS0aNRjKundRizGg=="
+        }
+      ],
+      "name": "@esbuild/netbsd-x64",
+      "purl": "pkg:npm/%40esbuild/netbsd-x64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "MEFJe5C3R8pwXdZ5Y21oo6m7ePiS0d9pWucn99O/wvyJZChoIQKrQDxKrGeW8F5+T0okTHesAmDeiHDTIq0V/Q=="
+        }
+      ],
+      "name": "@esbuild/openbsd-arm64",
+      "purl": "pkg:npm/%40esbuild/openbsd-arm64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "i/ZLIOafE0Z8cI/XANJAixoJL/uRAoS2xOA3rb0xN+KK0K177cMAsQYkzHtBrtMXAKuAc7HGgcWiZ/sRC1Nxgw=="
+        }
+      ],
+      "name": "@esbuild/openbsd-x64",
+      "purl": "pkg:npm/%40esbuild/openbsd-x64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "ge+Z7EXFNt2BO1oAMsVpiQ8EwndV9i1xXerAeTIK7AtPs3bKFXQM7nlRxDSIUIMeueR1CNXxqztLzdNeReKBJg=="
+        }
+      ],
+      "name": "@esbuild/openharmony-arm64",
+      "purl": "pkg:npm/%40esbuild/openharmony-arm64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "BEjgtECkL3vY+SaSQ6nzVfiALUeFxpawyp8Jmf5PtYhf1Ug40N1h/hxlhts+f1FvSvarEigdxS3BlSMI2PJLcQ=="
+        }
+      ],
+      "name": "@esbuild/sunos-x64",
+      "purl": "pkg:npm/%40esbuild/sunos-x64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "lCv9eK/H6ZJWbE7bh2nw54CZ9M2nupBxJcTsdk/QQnWkdSjKGuxmmH8/GWrlT1eMmZfn4dGcCjRte397WqfQXA=="
+        }
+      ],
+      "name": "@esbuild/win32-arm64",
+      "purl": "pkg:npm/%40esbuild/win32-arm64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "zvb/mB2bSCoJOpoCBgYKKpX6YM6mJBlBUVUtVj41DlZJVEB6/0CKlRYxP5wWl1C1ILiCoAU5wZZ4q1P3qeS6Eg=="
+        }
+      ],
+      "name": "@esbuild/win32-ia32",
+      "purl": "pkg:npm/%40esbuild/win32-ia32@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "bm4Mowrv+GXMlpWX++EcXw/iLyd1o3+bJkC2DkWXYVvgZCqD/bSj9ctZeAMC3cIxgjRVR2Dufaiu4YPxr5gW1A=="
+        }
+      ],
+      "name": "@esbuild/win32-x64",
+      "purl": "pkg:npm/%40esbuild/win32-x64@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://codeload.github.com/proof-computer/liskov-runtime-js/tar.gz/1ec38b85d94d4abce86d17ac92cc82abe6e28e12"
+        }
+      ],
+      "name": "@proof-computer/liskov-runtime",
+      "purl": "pkg:npm/%40proof-computer/liskov-runtime?download_url=https://codeload.github.com/proof-computer/liskov-runtime-js/tar.gz/1ec38b85d94d4abce86d17ac92cc82abe6e28e12",
+      "scope": "required",
+      "type": "library",
+      "version": "https://codeload.github.com/proof-computer/liskov-runtime-js/tar.gz/1ec38b85d94d4abce86d17ac92cc82abe6e28e12"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "fRa09kZTgu8o71KFcDjUFuc7F+dEbZYZmkI0mg5YBTRs0yMKjYHsq/c0urDKeDb+D5qVgXOdFcuu+DZPKOITwA=="
+        }
+      ],
+      "name": "@types/node",
+      "purl": "pkg:npm/%40types/node@24.13.2",
+      "scope": "required",
+      "type": "library",
+      "version": "24.13.2"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "HrJrvZv5ayxBzPfwphOoNzkzOIIlifzk0KJrGK2c8R4+LKpMtpYLQeUdjnwjWv/LZlkH2laZk+4w78pi99D4Vw=="
+        }
+      ],
+      "name": "esbuild",
+      "purl": "pkg:npm/esbuild@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw=="
+        }
+      ],
+      "name": "fsevents",
+      "purl": "pkg:npm/fsevents@2.3.3",
+      "scope": "required",
+      "type": "library",
+      "version": "2.3.3"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "X8EX+XV4QR5xCsrgxaED954zTDfY8KqlDtskKEL0cHhyS/P8b4IFOvGDQpsC9Q1XnLq915wEfwwY/zzskCtmhg=="
+        }
+      ],
+      "name": "tsx",
+      "purl": "pkg:npm/tsx@4.22.4",
+      "scope": "required",
+      "type": "library",
+      "version": "4.22.4"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="
+        }
+      ],
+      "name": "typescript",
+      "purl": "pkg:npm/typescript@5.9.3",
+      "scope": "required",
+      "type": "library",
+      "version": "5.9.3"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w=="
+        }
+      ],
+      "name": "undici-types",
+      "purl": "pkg:npm/undici-types@7.18.2",
+      "scope": "required",
+      "type": "library",
+      "version": "7.18.2"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "name": "@proof-computer/uptime-prober",
+      "type": "application",
+      "version": "0.0.0"
+    },
+    "tools": [
+      {
+        "name": "liskov-source-assurance-sbom",
+        "vendor": "PROOF",
+        "version": "1"
+      }
+    ]
+  },
+  "specVersion": "1.5",
+  "version": 1
+}
