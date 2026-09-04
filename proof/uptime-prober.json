@@ -3,14 +3,78 @@
   "entryId": "proof/uptime-prober",
   "displayName": "Uptime Prober",
   "summary": "Screenshots your site every 5 minutes from inside a mobile TEE and delivers it to your own Telegram bot.",
-  "description": "An Acurast app that, on a fixed 5-minute tick, renders a user-given URL **entirely inside the device WebView** (via Chrome DevTools Protocol), captures a PNG, and sends it to **your own Telegram bot** with a status caption (HTTP status, latency, timestamp). No PROOF bot and no provider secret — you supply the host plus your own bot token and chat id. The whole screenshot path runs in-job, with no dependency on Liskov or any external service beyond launch.",
-  "labels": ["uptime", "monitoring", "telegram"],
+  "description": "An Acurast app that, on a fixed 5-minute tick, renders a user-given URL **entirely inside the device WebView** (via Chrome DevTools Protocol), captures a PNG, and sends it to **your own Telegram bot** with a status caption (HTTP status, latency, timestamp). No PROOF bot and no provider secret \u2014 you supply the host plus your own bot token and chat id. The whole screenshot path runs in-job, with no dependency on Liskov or any external service beyond launch.",
+  "labels": [
+    "uptime",
+    "monitoring",
+    "telegram"
+  ],
   "appType": "background-worker",
   "wedgeCategory": "residential-tee",
   "source": {
     "repository": "proof-computer/liskov-marketplace-offerings",
-    "ref": "refs/heads/main",
-    "path": "uptime-prober/.liskov/uptime-prober.policy.json"
+    "ref": "refs/tags/uptime-prober-v1.0.0",
+    "path": "uptime-prober",
+    "license": "Apache-2.0"
+  },
+  "sourceAssurance": {
+    "schemaVersion": 1,
+    "mode": "public_inspectable",
+    "sourceDigest": "git-tree:2c7a11d6717eb97fe4851e918e25a47f16043b1e",
+    "licenseRef": "LICENSE",
+    "sbomRef": "sbom.cdx.json",
+    "build": {
+      "ref": "refs/heads/main",
+      "workflowRef": "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"
+    },
+    "declarations": {
+      "buildInputs": {
+        "declared": true,
+        "items": [
+          "package.json",
+          "pnpm-lock.yaml",
+          "tsconfig.json",
+          "scripts/build.ts"
+        ]
+      },
+      "generatedCode": {
+        "declared": true,
+        "items": [
+          {
+            "path": "dist/bundle.cjs",
+            "origin": "esbuild bundle of uptime-prober/src, produced by scripts/build.ts from the committed sources and lockfile"
+          }
+        ]
+      },
+      "permissions": {
+        "declared": true,
+        "items": [
+          "network.outbound",
+          "secrets.lockbox: the Telegram bot token the launching user supplies",
+          "runtime.webview: Chrome DevTools Protocol against the device WebView"
+        ]
+      },
+      "data": {
+        "declared": true,
+        "items": [
+          "the host URL the launching user configures",
+          "a PNG screenshot of that host, sent only to the user's own Telegram chat",
+          "HTTP status, latency and timestamp for each probe"
+        ]
+      },
+      "network": {
+        "declared": true,
+        "items": [
+          "api.telegram.org (fixed): delivery to the user's own bot",
+          "the user-configured host (variable by design: the offering exists to probe a URL the customer chooses, so this destination cannot be enumerated in advance)",
+          "the in-job WebView debug endpoint on localhost"
+        ]
+      },
+      "runtimeFetchedCode": {
+        "declared": true,
+        "items": []
+      }
+    }
   },
   "artifact": {
     "cid": "ipfs://QmQCpRJ593xRyKko9smvtFixzfAGwDuG6gXBemRtUeSe4U",
@@ -23,7 +87,11 @@
     "applicationId": "uptime-prober",
     "metadata": {
       "appType": "background-worker",
-      "labels": ["uptime", "monitoring", "telegram"]
+      "labels": [
+        "uptime",
+        "monitoring",
+        "telegram"
+      ]
     },
     "release": {
       "mode": "pinned",
@@ -141,5 +209,7 @@
       "description": "Open your new bot and send /start. Then open https://api.telegram.org/bot<TOKEN>/getUpdates and copy the numeric result[].message.chat.id value."
     }
   },
-  "pricingRequest": { "model": "free" }
+  "pricingRequest": {
+    "model": "free"
+  }
 }
