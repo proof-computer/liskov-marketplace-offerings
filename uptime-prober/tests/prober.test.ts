@@ -186,7 +186,8 @@ test("marketplace metadata explains Telegram token and chat-id prerequisites", (
   const chatHelp = entry.optionsSchema.telegramChatId.description;
   assert.match(tokenHelp, /@BotFather/u);
   assert.match(tokenHelp, /\/newbot/u);
-  assert.match(tokenHelp, /Lockbox/u);
+  assert.match(tokenHelp, /managed secret/u);
+  assert.doesNotMatch(tokenHelp, /Lockbox/u);
   assert.match(chatHelp, /\/start/u);
   assert.match(chatHelp, /getUpdates/u);
   assert.match(chatHelp, /message\.chat\.id/u);

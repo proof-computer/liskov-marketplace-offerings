@@ -50,7 +50,7 @@
         "declared": true,
         "items": [
           "network.outbound",
-          "secrets.lockbox: the Telegram bot token the launching user supplies",
+          "secrets: the Telegram bot token the launching user supplies",
           "runtime.webview: Chrome DevTools Protocol against the device WebView"
         ]
       },
@@ -197,7 +197,7 @@
       "target": "UPTIME_PROBER_TG_BOT_TOKEN",
       "secretBundleId": "uptime-prober-tg",
       "label": "Telegram bot token",
-      "description": "In Telegram, open the verified @BotFather account, send /newbot, follow the prompts, and copy the HTTP API token. Paste it only here; Liskov seals it via Lockbox and never writes it into the policy."
+      "description": "In Telegram, open the verified @BotFather account, send /newbot, follow the prompts, and copy the HTTP API token. Paste it only here; Liskov seals it as a managed secret and never writes it into the policy."
     },
     "telegramChatId": {
       "type": "env",

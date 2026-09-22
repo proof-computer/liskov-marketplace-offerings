@@ -59,13 +59,13 @@ A normal run also logs the verdict on its first tick.
    the numeric `result[].message.chat.id` value.
 4. In the Liskov Marketplace wizard, paste the token only into the masked
    **Telegram bot token** field and the numeric id into **Telegram chat ID**.
-   Liskov seals the token to Lockbox and never writes it into the policy.
+   Liskov seals the token as a managed secret and never writes it into the policy.
 
 | Env var | Marketplace option | Notes |
 | --- | --- | --- |
 | `UPTIME_PROBER_HOST` | user config (`env`) | URL to probe + screenshot |
 | `UPTIME_PROBER_TG_CHAT_ID` | user config (`env`) | numeric chat id (after `/start`ing your bot) |
-| `UPTIME_PROBER_TG_BOT_TOKEN` | user secret-option (`secret` → Lockbox → env) | the user's own bot token |
+| `UPTIME_PROBER_TG_BOT_TOKEN` | user secret-option (`secret` → managed secret → env) | the user's own bot token |
 | `UPTIME_PROBER_MODE` | — | `run` (default) \| `spike` |
 | `UPTIME_PROBER_TICK_MS` | — | default `300000` (5 min, fixed) |
 
