@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   artifact:
-    uses: proof-computer/liskov-github-actions/.github/workflows/acurast-app.yml@v1
+    uses: proof-computer/liskov-github-actions/.github/workflows/acurast-app.yml@v2
     with:
       app-id: uptime-prober
       working-directory: uptime-prober
@@ -32,6 +32,3 @@ jobs:
       # ADR-0106: regenerate and verify the committed SBOM, and print the
       # git-tree digest the Marketplace descriptor's sourceAssurance declares.
       source-assurance: true
-    secrets:
-      ACURAST_IPFS_URL: ${{ secrets.ACURAST_IPFS_URL }}
-      ACURAST_IPFS_API_KEY: ${{ secrets.ACURAST_IPFS_API_KEY }}
