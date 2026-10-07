@@ -83,10 +83,10 @@
   },
   "policyTemplate": {
     "schema": "proof.liskov.application-manifest",
-    "schemaVersion": 4,
+    "schemaVersion": 5,
     "applicationId": "uptime-prober",
     "metadata": {
-      "appType": "background-worker",
+      "description": "Screenshot a URL every 30 minutes and alert a Telegram chat when it is down.",
       "labels": [
         "uptime",
         "monitoring",
@@ -96,87 +96,70 @@
     "release": {
       "mode": "pinned",
       "artifact": {
-        "kind": "ipfs_bundle",
-        "cid": "ipfs://QmQCpRJ593xRyKko9smvtFixzfAGwDuG6gXBemRtUeSe4U",
-        "digest": "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57",
-        "encryption": {
-          "mode": "none"
-        }
+        "digest": "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57"
       }
     },
     "runtime": {
+      "kind": "javascript",
       "engine": "nodejs",
-      "resources": {
-        "memoryMiB": 512,
-        "storageMiB": 64,
-        "networkRequestQuota": 256
-      },
-      "bootstrap": {
-        "trustProfile": "proof.liskov.attested-runtime.v1",
-        "signedDiagnosticsRequired": true,
-        "identityBoundSecretsRequired": true
+      "entrypoint": {
+        "file": "bundle.cjs"
       }
     },
+    "execution": {
+      "mode": "continuous"
+    },
     "deployment": {
-      "parallelism": 1,
+      "jobs": 1,
       "schedule": {
-        "durationMs": 1800000,
-        "startDelayMs": 300000,
-        "maxStartDelayMs": 300000
+        "duration": "30m"
       },
       "placement": {
-        "requirements": {
-          "trustProfile": "proof.liskov.attested-runtime.v1"
-        },
-        "processorSelection": {
-          "mode": "open_market",
-          "requireScheduleClear": true,
-          "requireConsumerAccess": true,
-          "candidateLimit": 16
-        }
-      },
-      "lifecycle": {
-        "renewal": {
-          "mode": "before_scheduled_end",
-          "leadTime": {
-            "mode": "fixed",
-            "durationMs": 300000
-          }
-        },
-        "update": {
-          "timing": "next_scheduled_renewal",
-          "existingJobs": {
-            "mode": "run_until_scheduled_end"
-          }
-        },
-        "recovery": {
-          "launch": {
-            "maxRetries": 5
-          },
-          "runtimeFailure": {
-            "mode": "wait_until_scheduled_end"
-          }
+        "minimums": {
+          "memory": "512MiB",
+          "storage": "64MiB"
         }
       },
       "spend": {
-        "maxRewardPlanckPerJob": "40000000000",
-        "maxNativeFeePlanckPerJob": "10000000000"
-      }
-    },
-    "ingress": {},
-    "observability": {
-      "logs": {
-        "enabled": true,
-        "sinkName": "uptime-prober",
-        "context": {}
-      },
-      "runtimeDiagnostics": {
-        "signed": true
+        "unit": "service_credit_micros",
+        "perJob": "300000",
+        "rate": {
+          "amount": "15000000",
+          "window": "1d"
+        }
       }
     },
     "configuration": {
-      "variables": [],
-      "secrets": []
+      "variables": [
+        {
+          "source": "managed",
+          "name": "UPTIME_PROBER_HOST",
+          "required": true
+        },
+        {
+          "source": "managed",
+          "name": "UPTIME_PROBER_TG_CHAT_ID",
+          "required": true
+        }
+      ],
+      "secrets": [
+        {
+          "secretId": "uptime-prober-tg",
+          "required": true,
+          "destination": {
+            "kind": "environment",
+            "name": "UPTIME_PROBER_TG_BOT_TOKEN"
+          }
+        }
+      ]
+    },
+    "state": {
+      "mode": "off"
+    },
+    "observability": {
+      "logs": {
+        "enabled": true
+      }
     }
   },
   "optionsSchema": {
