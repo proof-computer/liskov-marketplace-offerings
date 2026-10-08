@@ -129,30 +129,6 @@
         }
       }
     },
-    "configuration": {
-      "variables": [
-        {
-          "source": "managed",
-          "name": "UPTIME_PROBER_HOST",
-          "required": true
-        },
-        {
-          "source": "managed",
-          "name": "UPTIME_PROBER_TG_CHAT_ID",
-          "required": true
-        }
-      ],
-      "secrets": [
-        {
-          "secretId": "uptime-prober-tg",
-          "required": true,
-          "destination": {
-            "kind": "environment",
-            "name": "UPTIME_PROBER_TG_BOT_TOKEN"
-          }
-        }
-      ]
-    },
     "state": {
       "mode": "off"
     },
