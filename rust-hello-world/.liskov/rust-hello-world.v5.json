@@ -1,0 +1,50 @@
+{
+  "schema": "proof.liskov.application-manifest",
+  "schemaVersion": 5,
+  "applicationId": "rust-hello-world",
+  "release": {
+    "mode": "source"
+  },
+  "runtime": {
+    "kind": "native_image",
+    "image": {
+      "catalog": "liskov-runtime-images",
+      "name": "debian-trixie-snapshot",
+      "version": "0.1"
+    },
+    "entrypoint": {
+      "executable": "/usr/local/bin/rust-hello-world"
+    }
+  },
+  "execution": {
+    "mode": "once"
+  },
+  "deployment": {
+    "jobs": 1,
+    "schedule": {
+      "duration": "30m"
+    },
+    "placement": {
+      "minimums": {
+        "memory": "512MiB",
+        "storage": "64MiB"
+      }
+    },
+    "spend": {
+      "unit": "service_credit_micros",
+      "perJob": "300000",
+      "rate": {
+        "amount": "15000000",
+        "window": "1d"
+      }
+    }
+  },
+  "state": {
+    "mode": "off"
+  },
+  "observability": {
+    "logs": {
+      "enabled": true
+    }
+  }
+}
