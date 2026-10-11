@@ -1,0 +1,28 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "name": "liskov-shell",
+      "purl": "pkg:cargo/liskov-shell@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "name": "liskov-shell",
+      "type": "application",
+      "version": "0.1.0"
+    },
+    "tools": [
+      {
+        "name": "liskov-source-assurance-sbom",
+        "vendor": "PROOF",
+        "version": "1"
+      }
+    ]
+  },
+  "specVersion": "1.5",
+  "version": 1
+}

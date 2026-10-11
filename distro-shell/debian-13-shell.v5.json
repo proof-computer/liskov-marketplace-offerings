@@ -1,0 +1,62 @@
+{
+  "schema": "proof.liskov.application-manifest",
+  "schemaVersion": 5,
+  "applicationId": "debian-13-shell",
+  "metadata": {
+    "description": "A disposable Debian 13 arm64 shell under PRoot on a residential phone, reached through managed SSH.",
+    "labels": ["debian", "shell", "ssh"]
+  },
+  "release": {
+    "mode": "source"
+  },
+  "runtime": {
+    "kind": "native_image",
+    "image": {
+      "catalog": "liskov-runtime-images",
+      "name": "debian-trixie",
+      "version": "0.1"
+    },
+    "entrypoint": {
+      "executable": "/usr/local/bin/liskov-shell",
+      "args": []
+    }
+  },
+  "execution": {
+    "mode": "once"
+  },
+  "deployment": {
+    "jobs": 1,
+    "schedule": {
+      "duration": "4h"
+    },
+    "placement": {
+      "minimums": {
+        "memory": "4GiB",
+        "storage": "8GiB"
+      }
+    },
+    "spend": {
+      "unit": "service_credit_micros",
+      "perJob": "1200000",
+      "rate": {
+        "amount": "3000000",
+        "window": "1d"
+      }
+    }
+  },
+  "access": {
+    "ssh": {
+      "provider": {
+        "kind": "liskov_managed"
+      }
+    }
+  },
+  "state": {
+    "mode": "off"
+  },
+  "observability": {
+    "logs": {
+      "enabled": true
+    }
+  }
+}
