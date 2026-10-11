@@ -10,6 +10,12 @@ not opt into local restart policy.
 
 ## Build
 
+The example builds from its V5 source document at
+`.liskov/rust-hello-world.v5.json` through
+`.github/workflows/rust-hello-world.yml`, which calls
+`cargo-runtime-image.yml@v2` against the attested `debian-trixie-snapshot`
+`v0.1.0-rc.13` base image.
+
 `Cargo.lock` and `rust-toolchain.toml` are committed. The reusable workflow
 builds the static AArch64 MUSL binary twice, overlays both builds independently
 on the exact attested helperless rootfs, and requires identical image bytes
