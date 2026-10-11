@@ -1,0 +1,28 @@
+name: Build Debian 13 shell image
+
+# BKLG-20261008-ep4l / ADR-0212. kj3r registers this build application
+# and its source binding before dispatch; keep its id aligned with the template.
+on:
+  workflow_dispatch:
+
+permissions:
+  attestations: write
+  contents: read
+  id-token: write
+
+jobs:
+  image:
+    uses: proof-computer/liskov-github-actions/.github/workflows/cargo-runtime-image.yml@v2
+    with:
+      application-id: debian-13-shell
+      manifest-path: distro-shell/debian-13-shell.v5.json
+      working-directory: distro-shell
+      binary-name: liskov-shell
+      install-path: /usr/local/bin/liskov-shell
+      base-image-url: https://github.com/proof-computer/liskov-runtime-images/releases/download/v0.1.0-rc.13/liskov-runtime-image-debian-trixie-snapshot-aarch64.tar.xz
+      base-image-sha256: ac69afc5c8737db519f653f42f150c814cfd2c1173bececa15fc32258a8e2f9a
+      base-attestation-repository: proof-computer/liskov-runtime-images
+      base-attestation-source-digest: e061dfd03f430657b4e937d91cfc804b1670d0f5
+      base-attestation-signer-workflow: proof-computer/liskov-runtime-images/.github/workflows/ci.yml
+      attest-runtime-image: true
+      source-assurance: true
