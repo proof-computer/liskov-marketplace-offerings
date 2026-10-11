@@ -1,7 +1,7 @@
 {
   "schema": "proof.liskov.application-manifest",
   "schemaVersion": 5,
-  "applicationId": "rust-hello-world",
+  "applicationId": "rust-hello-world-v5",
   "release": {
     "mode": "source"
   },

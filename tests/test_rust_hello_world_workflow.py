@@ -23,7 +23,7 @@ class RustHelloWorldWorkflowTests(unittest.TestCase):
         self.assertEqual(self.job["uses"], "proof-computer/liskov-github-actions/.github/workflows/cargo-runtime-image.yml@v2")
         self.assertNotIn("policy.json", WORKFLOW.read_text())
         self.assertEqual(self.inputs["manifest-path"], "rust-hello-world/.liskov/rust-hello-world.v5.json")
-        self.assertEqual(self.inputs["application-id"], "rust-hello-world")
+        self.assertEqual(self.inputs["application-id"], "rust-hello-world-v5")
         self.assertEqual(self.manifest["applicationId"], self.inputs["application-id"])
         self.assertEqual(self.manifest["schema"], "proof.liskov.application-manifest")
         self.assertEqual(self.manifest["schemaVersion"], 5)
