@@ -14,7 +14,11 @@ The example builds from its V5 source document at
 `.liskov/rust-hello-world.v5.json` through
 `.github/workflows/rust-hello-world.yml`, which calls
 `cargo-runtime-image.yml@v2` against the attested `debian-trixie-snapshot`
-`v0.1.0-rc.13` base image.
+`v0.1.0-rc.13` base image. The Liskov Application id is `rust-hello-world-v5`,
+and before dispatch the Application must carry a source binding for
+`proof-computer/liskov-marketplace-offerings`, `refs/heads/main`, workflow
+`proof-computer/liskov-marketplace-offerings/.github/workflows/rust-hello-world.yml@refs/heads/main`
+and manifest path `rust-hello-world/.liskov/rust-hello-world.v5.json`.
 
 `Cargo.lock` and `rust-toolchain.toml` are committed. The reusable workflow
 builds the static AArch64 MUSL binary twice, overlays both builds independently
