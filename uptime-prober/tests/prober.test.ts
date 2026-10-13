@@ -139,26 +139,27 @@ test("Telegram transport errors redact token URLs and preserve safe cause codes"
 
 test("marketplace template pins its release while the repository manifest retains build authority", () => {
   const entry = JSON.parse(readFileSync(new URL("../../proof/uptime-prober.json", import.meta.url), "utf8"));
-  const templateSelection = entry.policyTemplate.deployment.placement.processorSelection;
+  const template = entry.policyTemplate;
   const sourceManifest = JSON.parse(
     readFileSync(new URL("../.liskov/uptime-prober.policy.json", import.meta.url), "utf8")
   );
 
-  assert.equal(entry.policyTemplate.schema, "proof.liskov.application-manifest");
-  assert.equal(entry.policyTemplate.release.mode, "pinned");
-  assert.equal(entry.policyTemplate.release.artifact.kind, "ipfs_bundle");
-  assert.equal(entry.policyTemplate.release.artifact.cid, entry.artifact.cid);
-  assert.equal(entry.policyTemplate.release.artifact.digest, entry.artifact.digest);
-  assert.equal(entry.policyTemplate.release.artifact.encryption.mode, "none");
+  // The Marketplace launches a V5 application pinned by artifact digest.
+  assert.equal(template.schema, "proof.liskov.application-manifest");
+  assert.equal(template.schemaVersion, 5);
+  assert.equal(template.release.mode, "pinned");
+  assert.deepEqual(template.release.artifact, { digest: entry.artifact.digest });
   assert.equal(entry.artifact.requiredEncryptionMode, "none");
-  assert.equal("builder" in entry.policyTemplate.release, false);
-  assert.equal("build" in entry.policyTemplate, false);
-  assert.equal(templateSelection.mode, "open_market");
-  assert.equal(templateSelection.requireScheduleClear, true);
-  assert.equal(templateSelection.requireConsumerAccess, true);
-  assert.equal(entry.policyTemplate.deployment.schedule.durationMs, 1_800_000);
-  assert.deepEqual(entry.policyTemplate.ingress, {});
+  assert.equal("builder" in template.release, false);
+  assert.equal("build" in template, false);
+  assert.equal(template.deployment.schedule.duration, "30m");
+  assert.equal("ingress" in template, false);
+  assert.equal(template.observability.logs.enabled, true);
+  assert.equal(entry.artifact.cid, "ipfs://QmQCpRJ593xRyKko9smvtFixzfAGwDuG6gXBemRtUeSe4U");
+  assert.equal(entry.artifact.digest, "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57");
 
+  // The repository manifest is the artifact workflow's attestation input only;
+  // nothing imports it (V4 import is closed, BKLG-20260907-3xu0).
   assert.equal(sourceManifest.schema, "proof.liskov.application-manifest");
   assert.equal(sourceManifest.release.mode, "build");
   assert.equal(sourceManifest.release.artifact.kind, "ipfs_bundle");
@@ -172,12 +173,6 @@ test("marketplace template pins its release while the repository manifest retain
 
   assert.equal(entry.optionsSchema.host.delivery, "slipway");
   assert.equal(entry.optionsSchema.telegramChatId.delivery, "slipway");
-
-  assert.equal(entry.policyTemplate.observability.logs.enabled, true);
-  assert.deepEqual(entry.policyTemplate.configuration.secrets, []);
-  assert.deepEqual(entry.policyTemplate.configuration.variables, []);
-  assert.equal(entry.artifact.cid, "ipfs://QmQCpRJ593xRyKko9smvtFixzfAGwDuG6gXBemRtUeSe4U");
-  assert.equal(entry.artifact.digest, "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57");
 });
 
 test("marketplace metadata explains Telegram token and chat-id prerequisites", () => {
@@ -203,19 +198,6 @@ test("artifact workflow ships the stage0 wrapper and app bundle", () => {
 
   assert.match(workflow, /entrypoint:\s+bundle\.cjs/u);
   assert.match(workflow, /extra-files:\s+app\.cjs/u);
-});
-
-test("manifest workflow imports a draft through the reusable GitHub-OIDC route", () => {
-  const workflow = readFileSync(
-    new URL("../../.github/workflows/uptime-prober-policy.yml", import.meta.url),
-    "utf8"
-  );
-
-  assert.match(workflow, /permissions:\s*\n\s+id-token:\s+write/u);
-  assert.match(workflow, /liskov-github-actions\/\.github\/workflows\/policy-sync\.yml@main/u);
-  assert.match(workflow, /application-id:\s+uptime-prober/u);
-  assert.match(workflow, /manifest-path:\s+uptime-prober\/\.liskov\/uptime-prober\.policy\.json/u);
-  assert.doesNotMatch(workflow, /\bpublish:/u);
 });
 
 test("bootstrap tracing reports safe identity and HTTP milestones", async () => {
