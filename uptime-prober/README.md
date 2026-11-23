@@ -82,19 +82,26 @@ The spike needs a real Acurast processor (the WebView + CDP path); locally,
 `bootstrapSlipwayRuntime` degrades to a process-env/console runtime and the capability
 probe will report `webview missing` — expected off-device.
 
-## Build → attest → deploy (to port from liskov-diagnostic)
+## Build → upload → attest
 
-This app deliberately reuses `liskov-diagnostic`'s deploy plumbing. **Still to add**
-(mechanical port, tracked in BKLG-20260624-002):
+`.github/workflows/uptime-prober.yml` runs on a push to `main` that touches this
+directory or the workflow. It calls the released
+`proof-computer/liskov-github-actions/.github/workflows/acurast-app.yml@v2`, which:
 
-- The shared `liskov-github-actions` workflow pins the Acurast zip with `bundle.cjs`
-  as the stage0 entrypoint and `app.cjs` as the app payload.
-- `scripts/post-slipway-pin.ts` — post the GitHub-OIDC-attested pin to
-  `/api/applications/uptime-prober/artifact-pins/github`.
-- `.github/workflows/uptime-prober-ipfs.yml` — typecheck → test → build → pin → attest
-  (mirror `diagnostic-ipfs.yml`; note `ACURAST_MAX_NETWORK_REQUESTS` must be **> 0** here).
+- typechecks, tests and builds the app, then packs the Acurast zip with `bundle.cjs`
+  as the stage0 entrypoint and `app.cjs` as the app payload;
+- uploads the zip through a single-use Liskov upload token issued to the workflow for
+  the PROOF organization's `uptime-prober` publisher application;
+- attests the artifact against `.liskov/uptime-prober.policy.json`.
 
-Then fill `.liskov/uptime-prober.policy.json` `artifact.cid`/`digest` and register.
+`.liskov/uptime-prober.policy.json` is a Manifest V5 source document: the catalogue
+entry's `policyTemplate` (`../proof/uptime-prober.json`) with `release` set to
+`{"mode": "source"}`. The publisher's GitHub source binding names this path, this
+repository, `refs/heads/main` and the workflow, and the attestation is accepted only
+under that binding. The publisher application stays disabled; it runs no job.
+
+The Marketplace listing's `artifact` (CID and digest) is not changed by a run.
+Customer launches keep using the listed digest.
 
 ## Open validations (do the spike before trusting the loop)
 
