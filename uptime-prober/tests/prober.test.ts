@@ -137,7 +137,7 @@ test("Telegram transport errors redact token URLs and preserve safe cause codes"
   assert.match(summary, /ENOTFOUND/u);
 });
 
-test("marketplace template pins its release while the repository manifest retains build authority", () => {
+test("marketplace template pins its release and the repository manifest is its V5 source document", () => {
   const entry = JSON.parse(readFileSync(new URL("../../proof/uptime-prober.json", import.meta.url), "utf8"));
   const template = entry.policyTemplate;
   const sourceManifest = JSON.parse(
@@ -158,18 +158,15 @@ test("marketplace template pins its release while the repository manifest retain
   assert.equal(entry.artifact.cid, "ipfs://QmQCpRJ593xRyKko9smvtFixzfAGwDuG6gXBemRtUeSe4U");
   assert.equal(entry.artifact.digest, "sha256:7545ffe44288c548ff4dea09ef0c0dc318a8dd490c5dc822becec3ff0d307d57");
 
-  // The repository manifest is the artifact workflow's attestation input only;
-  // nothing imports it (V4 import is closed, BKLG-20260907-3xu0).
-  assert.equal(sourceManifest.schema, "proof.liskov.application-manifest");
-  assert.equal(sourceManifest.release.mode, "build");
-  assert.equal(sourceManifest.release.artifact.kind, "ipfs_bundle");
-  assert.equal(sourceManifest.release.artifact.encryption.mode, "none");
-  assert.equal(
-    sourceManifest.release.builder.workflowRef,
-    "proof-computer/liskov-marketplace-offerings/.github/workflows/uptime-prober.yml@refs/heads/main"
-  );
-  assert.equal(sourceManifest.deployment.schedule.durationMs, 1_800_000);
-  assert.deepEqual(sourceManifest.ingress, {});
+  // The repository manifest is the artifact workflow's attestation input: the
+  // catalogue template as a V5 source release, at the path the PROOF publisher's
+  // source binding names. A source release makes artifact-pin-attest send the
+  // registered-source evidence, never a V4 pin (BKLG-20261117-3mtl).
+  assert.deepEqual(sourceManifest, { ...template, release: { mode: "source" } });
+
+  const workflow = readFileSync(new URL("../../.github/workflows/uptime-prober.yml", import.meta.url), "utf8");
+  const entrypoint = /^\s*entrypoint:\s*(\S+)\s*$/mu.exec(workflow)?.[1];
+  assert.equal(sourceManifest.runtime.entrypoint.file, entrypoint);
 
   assert.equal(entry.optionsSchema.host.delivery, "slipway");
   assert.equal(entry.optionsSchema.telegramChatId.delivery, "slipway");
